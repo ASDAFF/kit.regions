@@ -1,0 +1,63 @@
+Array
+(
+    [0] => Array
+        (
+            [CODE] => CODE
+            [NAME] => Домен
+        )
+
+    [1] => Array
+        (
+            [CODE] => NAME
+            [NAME] => Регион
+        )
+
+    [2] => Array
+        (
+            [CODE] => SORT
+            [NAME] => Сортировка
+        )
+
+    [3] => Array
+        (
+            [CODE] => PRICE_CODE
+            [NAME] => Типы цен
+        )
+
+    [4] => Array
+        (
+            [CODE] => STORE
+            [NAME] => Склады
+        )
+
+    [5] => Array
+        (
+            [CODE] => COUNTER
+            [NAME] => Счетчики
+        )
+
+    [6] => Array
+        (
+            [CODE] => MAP_YANDEX
+            [NAME] => Яндекс карта
+        )
+
+    [7] => Array
+        (
+            [CODE] => MAP_GOOGLE
+            [NAME] => Google карта
+        )
+
+    [8] => Array
+        (
+            [CODE] => UF_PHONE
+            [NAME] => Телефон
+        )
+
+    [9] => Array
+        (
+            [CODE] => UF_ADDRESS
+            [NAME] => Адрес
+        )
+
+)

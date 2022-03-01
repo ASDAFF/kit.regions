@@ -1,0 +1,425 @@
+Array
+(
+    [0] => Kit\Regions\Config\Widgets\Variables Object
+        (
+            [code:protected] => AVAILABLE_VARIABLES
+            [currentValue:protected] => 
+            [values:protected] => Array
+                (
+                )
+
+            [settings:protected] => Array
+                (
+                    [COLSPAN] => Array
+                        (
+                            [0] => 1
+                            [1] => 1
+                        )
+
+                    [CUSTOM_ROW] => 1
+                    [SITE_ID] => 
+                )
+
+        )
+
+)
+Array
+(
+    [0] => Kit\Regions\Config\Widgets\Variables Object
+        (
+            [code:protected] => AVAILABLE_VARIABLES
+            [currentValue:protected] => 
+            [values:protected] => Array
+                (
+                )
+
+            [settings:protected] => Array
+                (
+                    [COLSPAN] => Array
+                        (
+                            [0] => 1
+                            [1] => 1
+                        )
+
+                    [CUSTOM_ROW] => 1
+                    [SITE_ID] => s1
+                )
+
+        )
+
+)
+Array
+(
+    [0] => Kit\Regions\Config\Widgets\Variables Object
+        (
+            [code:protected] => AVAILABLE_VARIABLES
+            [currentValue:protected] => 
+            [values:protected] => Array
+                (
+                )
+
+            [settings:protected] => Array
+                (
+                    [COLSPAN] => Array
+                        (
+                            [0] => 1
+                            [1] => 1
+                        )
+
+                    [CUSTOM_ROW] => 1
+                    [SITE_ID] => s1
+                )
+
+        )
+
+)
+Array
+(
+    [0] => Kit\Regions\Config\Widgets\Variables Object
+        (
+            [code:protected] => AVAILABLE_VARIABLES
+            [currentValue:protected] => 
+            [values:protected] => Array
+                (
+                )
+
+            [settings:protected] => Array
+                (
+                    [COLSPAN] => Array
+                        (
+                            [0] => 1
+                            [1] => 1
+                        )
+
+                    [CUSTOM_ROW] => 1
+                    [SITE_ID] => s1
+                )
+
+        )
+
+)
+Array
+(
+    [0] => Kit\Regions\Config\Widgets\Variables Object
+        (
+            [code:protected] => AVAILABLE_VARIABLES
+            [currentValue:protected] => 
+            [values:protected] => Array
+                (
+                )
+
+            [settings:protected] => Array
+                (
+                    [COLSPAN] => Array
+                        (
+                            [0] => 1
+                            [1] => 1
+                        )
+
+                    [CUSTOM_ROW] => 1
+                    [SITE_ID] => s1
+                )
+
+        )
+
+)
+Array
+(
+    [0] => Kit\Regions\Config\Widgets\Variables Object
+        (
+            [code:protected] => AVAILABLE_VARIABLES
+            [currentValue:protected] => 
+            [values:protected] => Array
+                (
+                )
+
+            [settings:protected] => Array
+                (
+                    [COLSPAN] => Array
+                        (
+                            [0] => 1
+                            [1] => 1
+                        )
+
+                    [CUSTOM_ROW] => 1
+                    [SITE_ID] => s1
+                )
+
+        )
+
+)
+Array
+(
+    [0] => Kit\Regions\Config\Widgets\Variables Object
+        (
+            [code:protected] => AVAILABLE_VARIABLES
+            [currentValue:protected] => 
+            [values:protected] => Array
+                (
+                )
+
+            [settings:protected] => Array
+                (
+                    [COLSPAN] => Array
+                        (
+                            [0] => 1
+                            [1] => 1
+                        )
+
+                    [CUSTOM_ROW] => 1
+                    [SITE_ID] => s1
+                )
+
+        )
+
+)
+Array
+(
+    [0] => Kit\Regions\Config\Widgets\Variables Object
+        (
+            [code:protected] => AVAILABLE_VARIABLES
+            [currentValue:protected] => 
+            [values:protected] => Array
+                (
+                )
+
+            [settings:protected] => Array
+                (
+                    [COLSPAN] => Array
+                        (
+                            [0] => 1
+                            [1] => 1
+                        )
+
+                    [CUSTOM_ROW] => 1
+                    [SITE_ID] => s1
+                )
+
+        )
+
+)
+Array
+(
+    [0] => Kit\Regions\Config\Widgets\Variables Object
+        (
+            [code:protected] => AVAILABLE_VARIABLES
+            [currentValue:protected] => 
+            [values:protected] => Array
+                (
+                )
+
+            [settings:protected] => Array
+                (
+                    [COLSPAN] => Array
+                        (
+                            [0] => 1
+                            [1] => 1
+                        )
+
+                    [CUSTOM_ROW] => 1
+                    [SITE_ID] => s1
+                )
+
+        )
+
+)
+Array
+(
+    [0] => Kit\Regions\Config\Widgets\Variables Object
+        (
+            [code:protected] => AVAILABLE_VARIABLES
+            [currentValue:protected] => 
+            [values:protected] => Array
+                (
+                )
+
+            [settings:protected] => Array
+                (
+                    [COLSPAN] => Array
+                        (
+                            [0] => 1
+                            [1] => 1
+                        )
+
+                    [CUSTOM_ROW] => 1
+                    [SITE_ID] => s1
+                )
+
+        )
+
+)
+Array
+(
+    [0] => Kit\Regions\Config\Widgets\Variables Object
+        (
+            [code:protected] => AVAILABLE_VARIABLES
+            [currentValue:protected] => 
+            [values:protected] => Array
+                (
+                )
+
+            [settings:protected] => Array
+                (
+                    [COLSPAN] => Array
+                        (
+                            [0] => 1
+                            [1] => 1
+                        )
+
+                    [CUSTOM_ROW] => 1
+                    [SITE_ID] => s1
+                )
+
+        )
+
+)
+Array
+(
+    [0] => Kit\Regions\Config\Widgets\Variables Object
+        (
+            [code:protected] => AVAILABLE_VARIABLES
+            [currentValue:protected] => 
+            [values:protected] => Array
+                (
+                )
+
+            [settings:protected] => Array
+                (
+                    [COLSPAN] => Array
+                        (
+                            [0] => 1
+                            [1] => 1
+                        )
+
+                    [CUSTOM_ROW] => 1
+                    [SITE_ID] => s1
+                )
+
+        )
+
+)
+Array
+(
+    [0] => Kit\Regions\Config\Widgets\Variables Object
+        (
+            [code:protected] => AVAILABLE_VARIABLES
+            [currentValue:protected] => 
+            [values:protected] => Array
+                (
+                )
+
+            [settings:protected] => Array
+                (
+                    [COLSPAN] => Array
+                        (
+                            [0] => 1
+                            [1] => 1
+                        )
+
+                    [CUSTOM_ROW] => 1
+                    [SITE_ID] => s1
+                )
+
+        )
+
+)
+Array
+(
+    [0] => Kit\Regions\Config\Widgets\Variables Object
+        (
+            [code:protected] => AVAILABLE_VARIABLES
+            [currentValue:protected] => 
+            [values:protected] => Array
+                (
+                )
+
+            [settings:protected] => Array
+                (
+                    [COLSPAN] => Array
+                        (
+                            [0] => 1
+                            [1] => 1
+                        )
+
+                    [CUSTOM_ROW] => 1
+                    [SITE_ID] => s1
+                )
+
+        )
+
+)
+Array
+(
+    [0] => Kit\Regions\Config\Widgets\Variables Object
+        (
+            [code:protected] => AVAILABLE_VARIABLES
+            [currentValue:protected] => 
+            [values:protected] => Array
+                (
+                )
+
+            [settings:protected] => Array
+                (
+                    [COLSPAN] => Array
+                        (
+                            [0] => 1
+                            [1] => 1
+                        )
+
+                    [CUSTOM_ROW] => 1
+                    [SITE_ID] => s1
+                )
+
+        )
+
+)
+Array
+(
+    [0] => Kit\Regions\Config\Widgets\Variables Object
+        (
+            [code:protected] => AVAILABLE_VARIABLES
+            [currentValue:protected] => 
+            [values:protected] => Array
+                (
+                )
+
+            [settings:protected] => Array
+                (
+                    [COLSPAN] => Array
+                        (
+                            [0] => 1
+                            [1] => 1
+                        )
+
+                    [CUSTOM_ROW] => 1
+                    [SITE_ID] => s1
+                )
+
+        )
+
+)
+Array
+(
+    [0] => Kit\Regions\Config\Widgets\Variables Object
+        (
+            [code:protected] => AVAILABLE_VARIABLES
+            [currentValue:protected] => 
+            [values:protected] => Array
+                (
+                )
+
+            [settings:protected] => Array
+                (
+                    [COLSPAN] => Array
+                        (
+                            [0] => 1
+                            [1] => 1
+                        )
+
+                    [CUSTOM_ROW] => 1
+                    [SITE_ID] => s1
+                )
+
+        )
+
+)

@@ -1,0 +1,4 @@
+<?
+$MESS['KIT_REGIONS_DATA_REGION_ID'] = 'Регион';
+$MESS['KIT_REGIONS_DATA_REGION_FIELDS'] = 'Вывод полей';
+?>
