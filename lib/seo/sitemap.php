@@ -1,4 +1,9 @@
 <?php
+
+/**
+ * Copyright (c) 2/3/2022 Created By/Edited By ASDAFF asdaff.asad@yandex.ru
+ */
+
 namespace Kit\Regions\Seo;
 
 use Bitrix\Main\Error;
@@ -9,6 +14,7 @@ use Kit\Regions\Config\Option;
  * Class Sitemap
  *
  * @package Kit\Regions\Seo
+ * Date: 18.12.2019
  */
 class Sitemap extends File
 {
@@ -66,7 +72,7 @@ class Sitemap extends File
                     $find = true;
                     $xmlRoot = simplexml_load_file($this->dir . $rootFile);
                     $newXml = $this->addFileHeader();
-                    $newXml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+                    $newXml .= '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
 
                     // main sitemap
                     foreach ($xmlRoot->sitemap as $sitemap)
@@ -79,17 +85,24 @@ class Sitemap extends File
                         {
                             $xml = simplexml_load_file($this->dir . $file);
                             // main sitemap link to sub php
-                            $newXml .= $this->createNewUrl($this->replaceExtension($sitemap->loc),
-                                $sitemap->lastmod);
+                            $newXml .= $this->createNewUrl(
+                                $this->replaceExtension($sitemap->loc),
+                                $sitemap->lastmod,
+                                'sitemap'
+                            );
 
                             // Gen sub sitemaps
                             $newSubXml = $this->addFileHeader();
-                            $newSubXml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+                            $newSubXml .= '<sitemap>';
                             foreach ($xml->url as $url)
                             {
-                                $newSubXml .= $this->createNewUrl($url->loc, $url->lastmod);
+                                $newSubXml .= $this->createNewUrl(
+                                    $url->loc,
+                                    $url->lastmod,
+                                    'url'
+                                );
                             }
-                            $newSubXml .= '</urlset>';
+                            $newSubXml .= '</sitemap>';
 
                             // sub sitemap.php
                             $newSubFile = $this->genNewFile($this->dir . $file, $newSubXml);
@@ -101,7 +114,7 @@ class Sitemap extends File
 
                         }
                     }
-                    $newXml .= '</urlset>';
+                    $newXml .= '</sitemapindex>';
 
                     // main sitemap.php
                     $newFile = $this->genNewFile($this->dir . $rootFile, $newXml);
@@ -129,10 +142,10 @@ class Sitemap extends File
     }
 
     // create url for xml
-    public function createNewUrl($loc, $lastmod)
+    public function createNewUrl($loc, $lastmod, $urlTagName = 'sitemap')
     {
         $newXml = '';
-        $newXml .= '<url>';
+        $newXml .= str_replace('#placeholder#', $urlTagName, '<#placeholder#>');
         $loc = str_replace([
             'http://',
             'https://',
@@ -144,7 +157,7 @@ class Sitemap extends File
 
         $newXml .= '<loc>'.'<?=$domainCode?>'.$loc.'</loc>';
         $newXml .= '<lastmod>'.$lastmod.'</lastmod>';
-        $newXml .= '</url>';
+        $newXml .= str_replace('#placeholder#', $urlTagName, '</#placeholder#>');
 
         return $newXml;
     }

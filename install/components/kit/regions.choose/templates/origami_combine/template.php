@@ -7,28 +7,29 @@ use Kit\Regions\Config\Option;
 Loc::loadMessages(__FILE__);
 
 ?>
-<svg width="18" height="18">
-    <use xlink:href="/local/templates/kit_origami/assets/img/sprite.svg#icon_location"></use>
-</svg>
-<p><?= Loc::getMessage(KitRegions::moduleId . '_YOUR_CITY') ?></p>
-<a href="#" class="select-city__block__text-city__js" onclick="function f(e) {	  e.preventDefault();	}">
-    <?=$arResult['USER_REGION_NAME']?>
-</a>
-
+<div id="regions_choose_component">
+<span class="select-city__block__text-city__js" data-entity="select-city__block__text-city">
+    ______
+</span>
+</div>
 <!-- modal is yr city YES/NO popup -->
-<div class="select-city__dropdown-wrap"  style="<?=($arResult['SHOW_POPUP'] == 'Y')?'display:block;':'display:none;'?>">
+<div class="select-city__dropdown-wrap" id="regions_choose_component_dropdown"  style="display: none;">
     <div class="select-city__dropdown">
         <div class="select-city__dropdown__title-wrap">
-				<span class="select-city__dropdown__title"><?= Loc::getMessage(KitRegions::moduleId . '_YOUR_CITY') ?>
-                    <?= $arResult['USER_REGION_NAME_LOCATION'] ?>?
+				<span class="select-city__dropdown__title" data-entity="select-city__dropdown__title">
+                    <?= Loc::getMessage(KitRegions::moduleId . '_YOUR_CITY') . ' ###?' ?>
 				</span>
         </div>
 
         <div class="select-city__dropdown__choose-wrap">
-				<span class="select-city__dropdown__choose__yes select-city__dropdown__choose" data-id="<?=$arResult['USER_REGION_ID']?>" data-region-id="<?=$arResult['USER_MULTI_REGION_ID']?>" data-code="<?= $arResult['USER_REGION_CODE']?>">
+				<span class="select-city__dropdown__choose__yes select-city__dropdown__choose"
+                    data-entity="select-city__dropdown__choose__yes"
+                >
 					<?= Loc::getMessage(KitRegions::moduleId . '_YES') ?>
 				</span>
-                <span class="select-city__dropdown__choose__no select-city__dropdown__choose">
+                <span class="select-city__dropdown__choose__no select-city__dropdown__choose"
+                    data-entity="select-city__dropdown__choose__no"
+                >
 					<?= Loc::getMessage(KitRegions::moduleId . '_NO') ?>
 				</span>
         </div>
@@ -38,25 +39,58 @@ Loc::loadMessages(__FILE__);
 <!-- modal YES/NO popup -->
 
 <!-- REGIONS POPUP -->
-<div class="select-city__modal">
-
+<div id="regon_choose_select-city__modal" style="display: none;" class="select-city__modal">
+    <div class="select-city__modal-wrap region_choose">
+        <!-- POPUP TITTLE -->
+        <div class="select-city__modal-title">
+            <?= Loc::getMessage(KitRegions::moduleId . "_TITLE") ?>
+            <div class="select-city__close" data-entity="select-city__close"></div>
+        </div>
+        <!--/ POPUP TITTLE -->
+        <div class="select-city-content-wrapper">
+            <div class="select-city__image">
+                <img src="<?=$this->GetFolder()?>/img/choose_region.png">
+            </div>
+            <!-- REGION INPUT -->
+            <div class="select-city__input-wrapper">
+                <div class="select-city__response_wrapper">
+                    <input class="select-city__input" data-entity="select-city__modal__submit__input"
+                           placeholder=" <?= Loc::getMessage(KitRegions::moduleId . "_WRITE_SITY") ?>">
+                    <div class="select-city__response" data-entity="select-city__modal__submit__vars" style="display: none;">
+                    </div>
+                </div>
+            </div>
+            <!--/ REGION INPUT -->
+            <!-- CITY FOR EXAMPLE -->
+            <div class="select-city__wrapper__input">
+                <div class="select-city__input__comment select-city__under_input" data-entity="select-city__input__example">
+                    <?=Loc::getMessage('kit.regions_EXAMPLE')?>
+                </div>
+            </div>
+            <!--/ CITY FOR EXAMPLE  -->
+            <!-- BUTTON -->
+            <div class="select-city-button-wrapper">
+                <div>
+                    <button type="submit" class="btn select-city-button regions_choose"
+                        data-entity="select-city__modal__submit__btn" disabled
+                    >
+                        <?=Loc::getMessage(KitRegions::moduleId . "CHOOSE_REG_BUTTON_TITTLE")?>
+                    </button>
+                </div>
+            </div>
+            <!-- / BUTTON -->
+            <div class="select-city__automatic" data-entity="select-city__automatic">
+                <a href="#"> <?=Loc::getMessage(KitRegions::moduleId . "CHOOSE_AUTOMATIC")?></a>
+            </div>
+        </div>
+    </div>
 </div>
 <!--/ REGIONS POPUP -->
 
-<div class="modal__overlay"></div>
+<div  id="regon_choose_modal__overlay" style="display: none;" class="modal__overlay"></div>
 
 <?
 ?>
 <script>
-    var KitRegion = new KitRegions({
-        'list':<?=CUtil::PhpToJSObject($arResult['REGION_LIST'], false, true); ?>,
-        'rootDomain':'<?=$arResult['ROOT_DOMAIN'][0]?>',
-        //'rootDomain': 'kit.com',
-        'templateFolder':'<?=$templateFolder?>',
-        'componentFolder':'<?=$componentPath?>',
-        'singleDomain':'<?=Option::get('SINGLE_DOMAIN',SITE_ID)?>',
-        'arParams':'<?=json_encode($arParams)?>',
-        'requestFolder': '/local/templates/.default/components/kit/regions.choose/origami_header_2',
-        'locationType': <?if($arParams["FROM_LOCATION"] == "Y"):?>'location'<?else:?>'regions'<?endif;?>,
-    });
+    $componentRegionsChoose = new RegionsChoose();
 </script>

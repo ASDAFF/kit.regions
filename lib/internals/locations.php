@@ -2,12 +2,12 @@
 
 namespace Kit\Regions\Internals;
 
-use Bitrix\Main;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ORM\Data\DataManager;
 use Bitrix\Main\ORM\Fields\IntegerField;
 use Bitrix\Main\ORM\Fields\Relations\Reference;
 use Bitrix\Main\ORM\Query\Join;
+use Bitrix\Main\ORM\Event;
 
 Loc::loadMessages(__FILE__);
 
@@ -48,26 +48,17 @@ class LocationsTable extends DataManager
         ];
     }
 
-    /**
-     * @param Main\Entity\Event $event
-     */
-    public static function OnAdd(Main\Entity\Event $event)
+    public static function OnAdd(Event $event)
     {
         LocationsTable::getEntity()->cleanCache();
     }
 
-    /**
-     * @param Main\Entity\Event $event
-     */
-    public static function OnUpdate(Main\Entity\Event $event)
+    public static function OnUpdate(Event $event)
     {
         LocationsTable::getEntity()->cleanCache();
     }
 
-    /**
-     * @param Main\Entity\Event $event
-     */
-    public static function OnDelete(Main\Entity\Event $event)
+    public static function OnDelete(Event $event)
     {
         LocationsTable::getEntity()->cleanCache();
     }

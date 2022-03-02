@@ -1,15 +1,21 @@
 <?php
 
+use Bitrix\Main\Application;
 use Bitrix\Main\EventManager;
 use Bitrix\Main\Loader;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\ModuleManager;
+use Bitrix\Main\Service\GeoIp;
+use Bitrix\Main\Service\GeoIp\EO_Handler;
 use Bitrix\Main\SiteTable;
 use Bitrix\Sale\Location\TypeTable;
+use Kit\Regions\SypexGeo\SypexGeoUpdater;
 
 Loc::loadMessages(__FILE__);
 require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/classes/general/update_client.php');
 require_once($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/main/classes/general/update_client_partner.php');
+require __DIR__ . '/../lib/sypexgeo/sypexgeolocal.php';
+require __DIR__ . '/../lib/sypexgeo/sypexgeoupdater.php';
 
 class kit_regions extends CModule
 {
@@ -20,7 +26,7 @@ class kit_regions extends CModule
     var $MODULE_NAME;
     var $MODULE_DESCRIPTION;
     var $MODULE_CSS;
-    var $_2092170183 = '';
+    var $_1934944684 = '';
 
     function __construct()
     {
@@ -45,10 +51,13 @@ class kit_regions extends CModule
             $this->InstallDB();
             $APPLICATION->IncludeAdminFile(GetMessage('INSTALL_TITLE'), $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/kit.regions/install/step.php');
         }
+        SypexGeoUpdater::setAgent();
     }
 
     function InstallEvents()
     {
+        EventManager::getInstance()->registerEventHandler('main', 'onMainGeoIpHandlersBuildList', 'kit.regions', '\\' . \Kit\Regions\EventHandlers::class, "addGeoIpServes",);
+//        EventManager::getInstance()->registerEventHandler('main', 'onMainGeoIpHandlersBuildList', 'kit.regions', '\\Kit\Regions\EventHandlers::class, "addGeoIpServes"',);
         EventManager::getInstance()->registerEventHandler('sale', 'OnSaleComponentOrderProperties', 'kit.regions', '\Kit\Regions\EventHandlers', 'OnSaleComponentOrderPropertiesHandler');
         EventManager::getInstance()->registerEventHandler('main', 'OnEndBufferContent', 'kit.regions', '\Kit\Regions\EventHandlers', 'OnEndBufferContentHandler', 999);
         EventManager::getInstance()->registerEventHandler('main', 'OnUserTypeBuildList', 'kit.regions', '\Kit\Regions\EventHandlers', 'OnUserTypeBuildListHandlerHtml');
@@ -62,206 +71,218 @@ class kit_regions extends CModule
         EventManager::getInstance()->registerEventHandler('main', 'OnBeforeMailSend', 'kit.regions', '\Kit\Regions\EventHandlers', 'OnBeforeMailSendHandler');
         EventManager::getInstance()->registerEventHandler('main', 'OnBuildGlobalMenu', self::MODULE_ID, '\Kit\Regions\EventHandlers', 'OnBuildGlobalMenuHandler');
         EventManager::getInstance()->registerEventHandler('sale', 'OnCondSaleControlBuildList', self::MODULE_ID, '\Kit\Regions\EventHandlers', 'OnCondSaleControlBuildListHandler');
-        $_966293903 = SiteTable::getList(array('filter' => array('ACTIVE' => 'Y')));
-        while ($_903582902 = $_966293903->fetch()) {
-            $this->KitRegionsInstallData($_903582902['LID']);
-            $this->KitRegionsSetSettings($_903582902['LID']);
+        $_1516249333 = SiteTable::getList(array('filter' => array('ACTIVE' => 'Y')));
+        while ($_1398202006 = $_1516249333->fetch()) {
+            $this->KitRegionsInstallData($_1398202006['LID']);
+            $this->KitRegionsSetSettings($_1398202006['LID']);
         }
         return true;
     }
 
-    function KitRegionsInstallData($_824762740 = '')
+    function KitRegionsInstallData($_1260573971 = '')
     {
-        $this->KitRegionsInstallProperties($_824762740);
-        $this->KitRegionsInstallDomains($_824762740);
-        $this->KitRegionsInstallFavorites($_824762740);
+        $this->KitRegionsInstallProperties($_1260573971);
+        $this->KitRegionsInstallDomains($_1260573971);
+        $this->KitRegionsInstallFavorites($_1260573971);
         return true;
     }
 
-    function KitRegionsInstallProperties($_824762740)
+    function KitRegionsInstallProperties($_1260573971)
     {
-        $_1501769227 = array();
-        $_124686194 = CLanguage::GetList($_436732177, $_658653442, array());
-        while ($_272330083 = $_966293903 = $_124686194->Fetch()) {
-            $_1501769227[] = htmlspecialcharsbx($_272330083['LID']);
+        $_1149498196 = array();
+        $_1937458835 = CLanguage::GetList($_1205831262, $_1775081192, array());
+        while ($_1402893842 = $_1516249333 = $_1937458835->Fetch()) {
+            $_1149498196[] = htmlspecialcharsbx($_1402893842['LID']);
         }
-        $_1622258214 = new \CUserTypeEntity;
-        $_1936986892 = array('ENTITY_ID' => 'KIT_REGIONS', 'SORT' => 100, 'MULTIPLE' => 'N', 'MANDATORY' => 'N', 'SHOW_FILTER' => 'N', 'SHOW_IN_LIST' => 'Y', 'EDIT_IN_LIST' => 'Y', 'IS_SEARCHABLE' => 'N', 'SETTINGS' => array(), 'EDIT_FORM_LABEL' => array(), 'LIST_COLUMN_LABEL' => array(), 'LIST_FILTER_LABEL' => array(), 'ERROR_MESSAGE' => array(), 'HELP_MESSAGE' => array(),);
-        $_381262681 = array('PHONE' => array('FIELD_NAME' => 'UF_PHONE', 'USER_TYPE_ID' => 'string', 'MULTIPLE' => 'Y'), 'ADDRESS' => array('FIELD_NAME' => 'UF_ADDRESS', 'USER_TYPE_ID' => 'html',), 'EMAIL' => array('FIELD_NAME' => 'UF_EMAIL', 'USER_TYPE_ID' => 'string', 'MULTIPLE' => 'Y'), 'ROBOTS' => array('FIELD_NAME' => 'UF_ROBOTS', 'USER_TYPE_ID' => 'html',),);
-        foreach ($_381262681 as $_1788443699 => $_1438710370) {
-            $_1135003077 = array_merge($_1936986892, $_1438710370);
-            foreach ($_1501769227 as $_635616548) {
-                $_1135003077['EDIT_FORM_LABEL'][$_635616548] = Loc::getMessage('kit.regions_PROP_' . $_1788443699);
-                $_1135003077['LIST_COLUMN_LABEL'][$_635616548] = Loc::getMessage('kit.regions_PROP_' . $_1788443699);
-                $_1135003077['LIST_FILTER_LABEL'][$_635616548] = Loc::getMessage('kit.regions_PROP_' . $_1788443699);
-                $_1135003077['ERROR_MESSAGE'][$_635616548] = Loc::getMessage('kit.regions_PROP_' . $_1788443699);
-                $_1135003077['HELP_MESSAGE'][$_635616548] = Loc::getMessage('kit.regions_PROP_' . $_1788443699);
+        $_135703835 = new \CUserTypeEntity;
+        $_1649592066 = array('ENTITY_ID' => 'KIT_REGIONS', 'SORT' => 100, 'MULTIPLE' => 'N', 'MANDATORY' => 'N', 'SHOW_FILTER' => 'N', 'SHOW_IN_LIST' => 'Y', 'EDIT_IN_LIST' => 'Y', 'IS_SEARCHABLE' => 'N', 'SETTINGS' => array(), 'EDIT_FORM_LABEL' => array(), 'LIST_COLUMN_LABEL' => array(), 'LIST_FILTER_LABEL' => array(), 'ERROR_MESSAGE' => array(), 'HELP_MESSAGE' => array(),);
+        $_1368976908 = array('PHONE' => array('FIELD_NAME' => 'UF_PHONE', 'USER_TYPE_ID' => 'string', 'MULTIPLE' => 'Y'), 'ADDRESS' => array('FIELD_NAME' => 'UF_ADDRESS', 'USER_TYPE_ID' => 'html',), 'EMAIL' => array('FIELD_NAME' => 'UF_EMAIL', 'USER_TYPE_ID' => 'string', 'MULTIPLE' => 'Y'), 'ROBOTS' => array('FIELD_NAME' => 'UF_ROBOTS', 'USER_TYPE_ID' => 'html',),);
+        foreach ($_1368976908 as $_1723785441 => $_1684220390) {
+            $_1145877735 = array_merge($_1649592066, $_1684220390);
+            foreach ($_1149498196 as $_434315318) {
+                $_1145877735['EDIT_FORM_LABEL'][$_434315318] = Loc::getMessage('kit.regions_PROP_' . $_1723785441);
+                $_1145877735['LIST_COLUMN_LABEL'][$_434315318] = Loc::getMessage('kit.regions_PROP_' . $_1723785441);
+                $_1145877735['LIST_FILTER_LABEL'][$_434315318] = Loc::getMessage('kit.regions_PROP_' . $_1723785441);
+                $_1145877735['ERROR_MESSAGE'][$_434315318] = Loc::getMessage('kit.regions_PROP_' . $_1723785441);
+                $_1145877735['HELP_MESSAGE'][$_434315318] = Loc::getMessage('kit.regions_PROP_' . $_1723785441);
             }
-            $_188454216 = $_1622258214->Add($_1135003077);
+            $_904595014 = $_135703835->Add($_1145877735);
         }
     }
 
-    function KitRegionsInstallDomains($_824762740)
+    function KitRegionsInstallDomains($_1260573971)
     {
-        $_538562351 = array();
-        $_2047988612 = array();
+        $_79589753 = array();
+        $_2110945885 = array();
         if (Loader::includeModule('catalog')) {
-            $_966293903 = \CCatalogGroup::GetList(array(), array('ACTIVE' => 'Y'));
-            while ($_525398833 = $_966293903->Fetch()) {
-                $_538562351[] = $_525398833['NAME'];
+            $_1516249333 = \CCatalogGroup::GetList(array(), array('ACTIVE' => 'Y'));
+            while ($_788247857 = $_1516249333->Fetch()) {
+                $_79589753[] = $_788247857['NAME'];
             }
-            $_966293903 = \CCatalogStore::GetList(array(), array('ISSUING_CENTER' => 'Y', 'ACTIVE' => 'Y'), false, false, array('ID'));
-            while ($_1365007376 = $_966293903->Fetch()) {
-                $_2047988612[] = $_1365007376['ID'];
+            $_1516249333 = \CCatalogStore::GetList(array(), array('ISSUING_CENTER' => 'Y', 'ACTIVE' => 'Y'), false, false, array('ID'));
+            while ($_2008148986 = $_1516249333->Fetch()) {
+                $_2110945885[] = $_2008148986['ID'];
             }
         }
-        $_653977542 = array('', 'spb', 'sochi', 'pyatigorsk', 'voronezh', 'krasnodar', 'samara', 'rostov', 'ufa', 'kaluga', 'kazan', 'stavropol', 'nn');
-        $_1079604733 = Bitrix\Main\Application::getInstance()->getContext();
-        $_513368146 = $_1079604733->getServer();
-        $_628438553 = $_513368146->getServerName();
-        $_1863160785 = (!empty($_SERVER['HTTPS']) && 'off' !== mb_strtolower($_SERVER['HTTPS'])) ? 'https://' : 'http://';
+        $_957705035 = array('', 'spb', 'sochi', 'pyatigorsk', 'voronezh', 'krasnodar', 'samara', 'rostov', 'ufa', 'kaluga', 'kazan', 'stavropol', 'nn');
+        $_680918118 = Bitrix\Main\Application::getInstance()->getContext();
+        $_544924460 = $_680918118->getServer();
+        $_1860535200 = $_544924460->getServerName();
+        $_1253365073 = (!empty($_SERVER['HTTPS']) && 'off' !== mb_strtolower($_SERVER['HTTPS'])) ? 'https://' : 'http://';
         global $DB;
-        foreach ($_653977542 as $_769059950 => $_1144031327) {
-            if (!empty($_1144031327)) {
-                $_531056557 = $_1144031327 . '.';
+        foreach ($_957705035 as $_52041450 => $_69734081) {
+            if (!empty($_69734081)) {
+                $_1667311065 = $_69734081 . '.';
             } else {
-                $_531056557 = $_1144031327;
+                $_1667311065 = $_69734081;
             }
-            $_1006114811 = $_1863160785 . $_531056557 . $_628438553;
-            $_334465713 = array('CODE' => $_1006114811, 'NAME' => Loc::getMessage('kit.regions_DOMEN_' . $_1144031327), 'SORT' => 100, 'PRICE_CODE' => $_538562351, 'STORE' => $_2047988612, 'SITE_ID' => [$_824762740]);
-            if ($_769059950 == 0) $_1172023494 = '\'Y\''; else $_1172023494 = 'NULL';
-            $DB->Query("INSERT INTO `kit_regions` VALUES (NULL,'" . $_334465713["CODE"] . "', '" . $_334465713["NAME"] . "', 100, '" . serialize($_334465713["SITE_ID"]) . "', '" . serialize($_334465713["PRICE_CODE"]) . "', '" . serialize($_334465713["STORE"]) . "', NULL, NULL, NULL, NULL, NULL, NULL, " . $_1172023494 . ");");
-            $_1275601142 = intval($DB->LastID());
-            if ($_1275601142 > 0) {
-                $_1329195353 = '+7495';
-                switch ($_1144031327) {
+            $_1852526104 = $_1253365073 . $_1667311065 . $_1860535200;
+
+
+
+            $_1944572090 = array('CODE' => $_1852526104, 'NAME' => Loc::getMessage('kit.regions_DOMEN_' . $_69734081), 'SORT' => 100, 'PRICE_CODE' => $_79589753, 'STORE' => $_2110945885, 'SITE_ID' => [$_1260573971]);
+            if ($_52041450 == 0) $_1887043063 = '\'Y\''; else $_1887043063 = 'NULL';
+
+
+            $DB->Query("INSERT INTO `kit_regions` VALUES (NULL,'" . $_1944572090["CODE"] . "', '" . $_1944572090["NAME"] . "', 100, '" . serialize($_1944572090["SITE_ID"]) . "', '" . serialize($_1944572090["PRICE_CODE"]) . "', '" . serialize($_1944572090["STORE"]) . "', NULL, NULL, NULL, NULL, NULL, NULL, " . $_1887043063 . ");");
+
+
+
+            $_389040470 = intval($DB->LastID());
+            if ($_389040470 > 0) {
+                $_692322523 = '+7495';
+                switch ($_69734081) {
                     case 'spb':
-                        $_1329195353 = '+7 812 ';
+                        $_692322523 = '+7 812 ';
                         break;
                     case 'sochi':
-                        $_1329195353 = '+7 8622 ';
+                        $_692322523 = '+7 8622 ';
                         break;
                     case 'pyatigorsk':
-                        $_1329195353 = '+7 8793 ';
+                        $_692322523 = '+7 8793 ';
                         break;
                     case 'voronezh':
-                        $_1329195353 = '+7 4732 ';
+                        $_692322523 = '+7 4732 ';
                         break;
                     case 'krasnodar':
-                        $_1329195353 = '+7 861 ';
+                        $_692322523 = '+7 861 ';
                         break;
                     case 'samara':
-                        $_1329195353 = '+7 846 ';
+                        $_692322523 = '+7 846 ';
                         break;
                     case 'rostov':
-                        $_1329195353 = '+7 863 ';
+                        $_692322523 = '+7 863 ';
                         break;
                     case 'ufa':
-                        $_1329195353 = '+7 347 ';
+                        $_692322523 = '+7 347 ';
                         break;
                     case 'kaluga':
-                        $_1329195353 = '+7 4842 ';
+                        $_692322523 = '+7 4842 ';
                         break;
                     case 'kazan':
-                        $_1329195353 = '+7 843 ';
+                        $_692322523 = '+7 843 ';
                         break;
                     case 'stavropol':
-                        $_1329195353 = '+7 8652 ';
+                        $_692322523 = '+7 8652 ';
                         break;
                     case 'nn':
-                        $_1329195353 = '+7 831 ';
+                        $_692322523 = '+7 831 ';
                         break;
                 }
-                if (mb_strlen($_1329195353) == 9) {
-                    $_485137891 = array($_1329195353 . '111-11-11', $_1329195353 . '222-22-22');
+                if (mb_strlen($_692322523) == 9) {
+                    $_1700836254 = array($_692322523 . '111-11-11', $_692322523 . '222-22-22');
                 } else {
-                    $_485137891 = array($_1329195353 . '11-11-11', $_1329195353 . '22-22-22');
+                    $_1700836254 = array($_692322523 . '11-11-11', $_692322523 . '22-22-22');
                 }
-                $DB->Query("INSERT INTO `kit_regions_fields` VALUES (NULL," . $_1275601142 . ", 'UF_PHONE', '" . serialize($_485137891) . "');");
+                $DB->Query("INSERT INTO `kit_regions_fields` VALUES (NULL," . $_389040470 . ", 'UF_PHONE', '" . serialize($_1700836254) . "');");
+                $DB->Query("INSERT INTO `kit_regions_fields` VALUES (NULL," . $_389040470 . ", 'UF_ADDRESS', '" . Loc::getMessage("kit.regions_ADDRESS", array("#HOME#" => rand(1, 50))) . "');");
+                $DB->Query("INSERT INTO `kit_regions_fields` VALUES (NULL," . $_389040470 . ", 'UF_EMAIL', '" . serialize(["sales@" . $_1667311065 . $_1860535200]) . "');");
+                $DB->Query("INSERT INTO `kit_regions_fields` VALUES (NULL," . $_389040470 . ", 'UF_ROBOTS', '');");
 
-                $DB->Query("INSERT INTO `kit_regions_fields` VALUES (NULL," . $_1275601142 . ", 'UF_ADDRESS', '" . Loc::getMessage("kit.regions_ADDRESS", array("#HOME#" => rand(1, 50))) . "');");
-                $DB->Query("INSERT INTO `kit_regions_fields` VALUES (NULL," . $_1275601142 . ", 'UF_EMAIL', '" . serialize(["sales@" . $_531056557 . $_628438553]) . "');");
-                $DB->Query("INSERT INTO `kit_regions_fields` VALUES (NULL," . $_1275601142 . ", 'UF_ROBOTS', '');");
+
                 if (Loader::includeModule('sale')) {
-                    $_111507430 = \Bitrix\Sale\Location\LocationTable::getList(['filter' => ['=NAME.NAME' => Loc::getMessage('kit.regions_LOCATION_' . $_1144031327), '=NAME.LANGUAGE_ID' => LANGUAGE_ID,], 'select' => ['*', 'NAME.*',], 'cache' => ['ttl' => 36000000,],])->fetch();
-                    if ($_111507430['ID'] > 0) {
-                        $DB->Query("INSERT INTO `kit_regions_locations` VALUES (NULL," . $_1275601142 . "," . $_111507430["ID"] . ");");
+                    $_1822669924 = \Bitrix\Sale\Location\LocationTable::getList(['filter' => ['=NAME.NAME' => Loc::getMessage('kit.regions_LOCATION_' . $_69734081), '=NAME.LANGUAGE_ID' => LANGUAGE_ID,], 'select' => ['*', 'NAME.*',], 'cache' => ['ttl' => 36000000,],])->fetch();
+                    if ($_1822669924['ID'] > 0) {
+                        $DB->Query("INSERT INTO `kit_regions_locations` VALUES (NULL," . $_389040470 . "," . $_1822669924["ID"] . ");");
                     }
-                    if ($_1144031327 == '') {
-                        $_111507430 = \Bitrix\Sale\Location\LocationTable::getList(['filter' => ['=NAME.NAME' => Loc::getMessage('kit.regions_LOCATION_MOSCOW'), '=NAME.LANGUAGE_ID' => LANGUAGE_ID,], 'select' => ['*', 'NAME.*',], 'cache' => ['ttl' => 36000000,],])->fetch();
+                    if ($_69734081 == '') {
+                        $_1822669924 = \Bitrix\Sale\Location\LocationTable::getList(['filter' => ['=NAME.NAME' => Loc::getMessage('kit.regions_LOCATION_MOSCOW'), '=NAME.LANGUAGE_ID' => LANGUAGE_ID,], 'select' => ['*', 'NAME.*',], 'cache' => ['ttl' => 36000000,],])->fetch();
                     }
-                    if ($_111507430['ID'] > 0) {
-                        $DB->Query("INSERT INTO `kit_regions_locations` VALUES (NULL," . $_1275601142 . "," . $_111507430["ID"] . ");");
+                    if ($_1822669924['ID'] > 0) {
+                        $DB->Query("INSERT INTO `kit_regions_locations` VALUES (NULL," . $_389040470 . "," . $_1822669924["ID"] . ");");
                     }
                 }
             }
         }
     }
 
-    function KitRegionsInstallFavorites($_824762740)
+    function KitRegionsInstallFavorites($_1260573971)
     {
         if (Loader::includeModule('sale')) {
-            $_1739999981 = ['MOSCOW', 'KALUGA', 'KAZAN', 'KRASNODAR', 'NN', 'PYATIGORSK', 'ROSTOV_NA_DONY', 'SAMARA', 'SOCHI', 'SP', 'STAVROPOL', 'UFA', 'VORONEG',];
-            foreach ($_1739999981 as $_674772327) {
-                $_111507430 = \Bitrix\Sale\Location\LocationTable::getList(['filter' => ['=NAME.NAME' => Loc::getMessage('kit.regions_FAVORITE_' . $_674772327), '=NAME.LANGUAGE_ID' => LANGUAGE_ID,], 'select' => ['*', 'NAME.*',], 'cache' => ['ttl' => 36000000,],])->fetch();
-                if ($_111507430['CODE']) {
-                    $_1944727793 = \Bitrix\Sale\Location\DefaultSiteTable::getList(['filter' => ['LOCATION_CODE' => $_111507430['CODE'], 'SITE_ID' => $_824762740]])->getSelectedRowsCount();
-                    if ($_1944727793 == 0) \Bitrix\Sale\Location\DefaultSiteTable::add(['SORT' => 100, 'LOCATION_CODE' => $_111507430['CODE'], 'SITE_ID' => $_824762740]);
+            $_820219324 = ['MOSCOW', 'KALUGA', 'KAZAN', 'KRASNODAR', 'NN', 'PYATIGORSK', 'ROSTOV_NA_DONY', 'SAMARA', 'SOCHI', 'SP', 'STAVROPOL', 'UFA', 'VORONEG',];
+            foreach ($_820219324 as $_915952566) {
+                $_1822669924 = \Bitrix\Sale\Location\LocationTable::getList(['filter' => ['=NAME.NAME' => Loc::getMessage('kit.regions_FAVORITE_' . $_915952566), '=NAME.LANGUAGE_ID' => LANGUAGE_ID,], 'select' => ['*', 'NAME.*',], 'cache' => ['ttl' => 36000000,],])->fetch();
+                if ($_1822669924['CODE']) {
+                    $_828804991 = \Bitrix\Sale\Location\DefaultSiteTable::getList(['filter' => ['LOCATION_CODE' => $_1822669924['CODE'], 'SITE_ID' => $_1260573971]])->getSelectedRowsCount();
+                    if ($_828804991 == 0) \Bitrix\Sale\Location\DefaultSiteTable::add(['SORT' => 100, 'LOCATION_CODE' => $_1822669924['CODE'], 'SITE_ID' => $_1260573971]);
                 }
             }
         }
     }
 
-    function KitRegionsSetSettings($_824762740)
+    function KitRegionsSetSettings($_1260573971)
     {
         global $DB;
-        $DB->Query("INSERT INTO `kit_regions_options` VALUES ('SINGLE_DOMAIN','Y', '" . $_824762740 . "');");
+        $DB->Query("INSERT INTO `kit_regions_options` VALUES ('SINGLE_DOMAIN','Y', '" . $_1260573971 . "');");
         if (Loader::includeModule('statistic')) {
-            $DB->Query("INSERT INTO `kit_regions_options` VALUES ('FIND_USER_METHOD','statistic', '" . $_824762740 . "');");
+            $DB->Query("INSERT INTO `kit_regions_options` VALUES ('FIND_USER_METHOD','statistic', '" . $_1260573971 . "');");
         } elseif (function_exists('curl_version')) {
-            $DB->Query("INSERT INTO `kit_regions_options` VALUES ('FIND_USER_METHOD','ipgeobase', '" . $_824762740 . "');");
+            $DB->Query("INSERT INTO `kit_regions_options` VALUES ('FIND_USER_METHOD','ipgeobase', '" . $_1260573971 . "');");
         } else {
-            $DB->Query("INSERT INTO `kit_regions_options` VALUES ('FIND_USER_METHOD','geoip','" . $_824762740 . "');");
+            $DB->Query("INSERT INTO `kit_regions_options` VALUES ('FIND_USER_METHOD','geoip','" . $_1260573971 . "');");
         }
-        $DB->Query("INSERT INTO `kit_regions_options` VALUES ('INSERT_SALE_LOCATION','N', '" . $_824762740 . "');");
-        $DB->Query("INSERT INTO `kit_regions_options` VALUES ('MULTIPLE_DELIMITER',', ', '" . $_824762740 . "');");
-        $_1618154071 = 5;
+        $DB->Query("INSERT INTO `kit_regions_options` VALUES ('INSERT_SALE_LOCATION','N', '" . $_1260573971 . "');");
+        $DB->Query("INSERT INTO `kit_regions_options` VALUES ('MULTIPLE_DELIMITER',', ', '" . $_1260573971 . "');");
+        $_1396366420 = 5;
         if (Loader::includeModule('sale')) {
-            $_1346233108 = TypeTable::getList(['select' => ['ID'], 'filter' => ['CODE' => 'CITY']])->fetch();
-            if (!empty($_1346233108['ID'])) $_1618154071 = $_1346233108['ID'];
+            $_1332076988 = TypeTable::getList(['select' => ['ID'], 'filter' => ['CODE' => 'CITY']])->fetch();
+            if (!empty($_1332076988['ID'])) $_1396366420 = $_1332076988['ID'];
         }
-        $DB->Query("INSERT INTO `kit_regions_options` VALUES ('LOCATION_TYPE', '" . $_1618154071 . "', '" . $_824762740 . "');");
+        $DB->Query("INSERT INTO `kit_regions_options` VALUES ('LOCATION_TYPE', '" . $_1396366420 . "', '" . $_1260573971 . "');");
     }
 
-    function InstallFiles($_196321995 = array())
+    function InstallFiles($_1510988695 = array())
     {
+        if (Loader::includeModule('kit.origami')) {
+            CopyDirFiles(__DIR__ . '/origami_templates', Application::getDocumentRoot(), true, true);
+        }
         CopyDirFiles($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . self::MODULE_ID . '/install/themes/', $_SERVER['DOCUMENT_ROOT'] . '/bitrix/themes/', true, true);
         CopyDirFiles($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . self::MODULE_ID . '/install/admin', $_SERVER['DOCUMENT_ROOT'] . '/bitrix/admin', true);
-        if (is_dir($_1543859195 = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . self::MODULE_ID . '/install/themes/.default')) {
-            if ($_1852328860 = opendir($_1543859195)) {
-                while (false !== $_116833994 = readdir($_1852328860)) {
-                    if ($_116833994 == '..' || $_116833994 == '.') continue;
-                    CopyDirFiles($_1543859195 . '/' . $_116833994, $_SERVER['DOCUMENT_ROOT'] . '/bitrix/themes/.default/' . $_116833994, $_1278828162 = True, $_1847141940 = True);
+        if (is_dir($_212967155 = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . self::MODULE_ID . '/install/themes/.default')) {
+            if ($_348137096 = opendir($_212967155)) {
+                while (false !== $_1271387824 = readdir($_348137096)) {
+                    if ($_1271387824 == '..' || $_1271387824 == '.') continue;
+                    CopyDirFiles($_212967155 . '/' . $_1271387824, $_SERVER['DOCUMENT_ROOT'] . '/bitrix/themes/.default/' . $_1271387824, $_1053155751 = True, $_1593034047 = True);
                 }
-                closedir($_1852328860);
+                closedir($_348137096);
             }
         }
-        if (is_dir($_1543859195 = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . self::MODULE_ID . '/install/components')) {
-            if ($_1852328860 = opendir($_1543859195)) {
-                while (false !== $_116833994 = readdir($_1852328860)) {
-                    if ($_116833994 == '..' || $_116833994 == '.') continue;
-                    CopyDirFiles($_1543859195 . '/' . $_116833994, $_SERVER['DOCUMENT_ROOT'] . '/bitrix/components/' . $_116833994, $_1278828162 = True, $_1847141940 = True);
+        if (is_dir($_212967155 = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . self::MODULE_ID . '/install/components')) {
+            if ($_348137096 = opendir($_212967155)) {
+                while (false !== $_1271387824 = readdir($_348137096)) {
+                    if ($_1271387824 == '..' || $_1271387824 == '.') continue;
+                    CopyDirFiles($_212967155 . '/' . $_1271387824, $_SERVER['DOCUMENT_ROOT'] . '/bitrix/components/' . $_1271387824, $_1053155751 = True, $_1593034047 = True);
                 }
-                closedir($_1852328860);
+                closedir($_348137096);
             }
         }
-        if (is_dir($_1543859195 = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . self::MODULE_ID . '/install/local')) {
-            if ($_1852328860 = opendir($_1543859195)) {
-                while (false !== $_116833994 = readdir($_1852328860)) {
-                    if ($_116833994 == '..' || $_116833994 == '.') continue;
-                    CopyDirFiles($_1543859195 . '/' . $_116833994, $_SERVER['DOCUMENT_ROOT'] . '/local/' . $_116833994, $_1278828162 = True, $_1847141940 = True);
+        if (is_dir($_212967155 = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . self::MODULE_ID . '/install/local')) {
+            if ($_348137096 = opendir($_212967155)) {
+                while (false !== $_1271387824 = readdir($_348137096)) {
+                    if ($_1271387824 == '..' || $_1271387824 == '.') continue;
+                    CopyDirFiles($_212967155 . '/' . $_1271387824, $_SERVER['DOCUMENT_ROOT'] . '/local/' . $_1271387824, $_1053155751 = True, $_1593034047 = True);
                 }
-                closedir($_1852328860);
+                closedir($_348137096);
             }
         }
         return true;
@@ -271,6 +292,8 @@ class kit_regions extends CModule
     {
         global $DB;
         $DB->runSQLBatch($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . self::MODULE_ID . '/install/db/' . mb_strtolower($DB->type) . '/install.sql');
+        $_1057636470 = GeoIp\HandlerTable::add(['SORT' => 105, 'ACTIVE' => 'Y', 'CLASS_NAME' => '\\' . \Kit\Regions\SypexGeo\SypexGeoLocal::class, "CONFIG" => "",]);
+//        $_1057636470 = GeoIp\HandlerTable::add(['SORT' => 105,  'ACTIVE' => 'Y', 'CLASS_NAME' => '\\Kit\Regions\SypexGeo\SypexGeoLocal::class, "CONFIG" => ""',]);
     }
 
     function DoUninstall()
@@ -278,9 +301,9 @@ class kit_regions extends CModule
         $this->UnInstallFiles();
         $this->UnInstallDB();
         $this->UnInstallEvents();
-        $_966293903 = SiteTable::getList(array('filter' => array('ACTIVE' => 'Y')));
-        while ($_903582902 = $_966293903->fetch()) {
-            $this->unInstallData($_903582902['LID']);
+        $_1516249333 = SiteTable::getList(array('filter' => array('ACTIVE' => 'Y')));
+        while ($_1398202006 = $_1516249333->fetch()) {
+            $this->unInstallData($_1398202006['LID']);
         }
         ModuleManager::unRegisterModule(self::MODULE_ID);
     }
@@ -289,32 +312,33 @@ class kit_regions extends CModule
     {
         DeleteDirFiles($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . self::MODULE_ID . '/install/admin', $_SERVER['DOCUMENT_ROOT'] . '/bitrix/admin');
         DeleteDirFiles($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . self::MODULE_ID . '/install/themes/.default/', $_SERVER['DOCUMENT_ROOT'] . '/bitrix/themes/.default');
-        if (is_dir($_1543859195 = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . self::MODULE_ID . '/install/themes/.default/')) {
-            if ($_1852328860 = opendir($_1543859195)) {
-                while (false !== $_116833994 = readdir($_1852328860)) {
-                    if ($_116833994 == '..' || $_116833994 == '.' || !is_dir($_879643787 = $_1543859195 . '/' . $_116833994)) continue;
-                    $_1957147707 = opendir($_879643787);
-                    while (false !== $_35923262 = readdir($_1957147707)) {
-                        if ($_35923262 == '..' || $_35923262 == '.') continue;
-                        DeleteDirFilesEx('/bitrix/themes/.default/' . $_116833994 . '/' . $_35923262);
+        \Bitrix\Main\IO\Directory::deleteDirectory(Application::getDocumentRoot() . '/local/templates/.default/components/kit/regions.choose');
+        if (is_dir($_212967155 = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . self::MODULE_ID . '/install/themes/.default/')) {
+            if ($_348137096 = opendir($_212967155)) {
+                while (false !== $_1271387824 = readdir($_348137096)) {
+                    if ($_1271387824 == '..' || $_1271387824 == '.' || !is_dir($_690581297 = $_212967155 . '/' . $_1271387824)) continue;
+                    $_2029615420 = opendir($_690581297);
+                    while (false !== $_460140899 = readdir($_2029615420)) {
+                        if ($_460140899 == '..' || $_460140899 == '.') continue;
+                        DeleteDirFilesEx('/bitrix/themes/.default/' . $_1271387824 . '/' . $_460140899);
                     }
-                    closedir($_1957147707);
+                    closedir($_2029615420);
                 }
-                closedir($_1852328860);
+                closedir($_348137096);
             }
         }
-        if (is_dir($_1543859195 = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . self::MODULE_ID . '/install/components')) {
-            if ($_1852328860 = opendir($_1543859195)) {
-                while (false !== $_116833994 = readdir($_1852328860)) {
-                    if ($_116833994 == '..' || $_116833994 == '.' || !is_dir($_879643787 = $_1543859195 . '/' . $_116833994)) continue;
-                    $_1957147707 = opendir($_879643787);
-                    while (false !== $_35923262 = readdir($_1957147707)) {
-                        if ($_35923262 == '..' || $_35923262 == '.') continue;
-                        DeleteDirFilesEx('/bitrix/components/' . $_116833994 . '/' . $_35923262);
+        if (is_dir($_212967155 = $_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . self::MODULE_ID . '/install/components')) {
+            if ($_348137096 = opendir($_212967155)) {
+                while (false !== $_1271387824 = readdir($_348137096)) {
+                    if ($_1271387824 == '..' || $_1271387824 == '.' || !is_dir($_690581297 = $_212967155 . '/' . $_1271387824)) continue;
+                    $_2029615420 = opendir($_690581297);
+                    while (false !== $_460140899 = readdir($_2029615420)) {
+                        if ($_460140899 == '..' || $_460140899 == '.') continue;
+                        DeleteDirFilesEx('/bitrix/components/' . $_1271387824 . '/' . $_460140899);
                     }
-                    closedir($_1957147707);
+                    closedir($_2029615420);
                 }
-                closedir($_1852328860);
+                closedir($_348137096);
             }
         }
         DeleteDirFilesEx('/local/tests/' . self::MODULE_ID . '/');
@@ -327,10 +351,21 @@ class kit_regions extends CModule
     {
         global $DB;
         $DB->runSQLBatch($_SERVER['DOCUMENT_ROOT'] . '/bitrix/modules/' . self::MODULE_ID . '/install/db/' . mb_strtolower($DB->type) . '/uninstall.sql');
+        $_2082569957 = GeoIp\HandlerTable::query()->where('CLASS_NAME', '\\' . \Kit\Regions\SypexGeo\SypexGeoLocal::class)->fetchObject();
+//        $_2082569957 = GeoIp\HandlerTable::query()->where('CLASS_NAME', '\\Kit\Regions\SypexGeo\SypexGeoLocal::class)->fetchObject();
+        if ($_2082569957 instanceof EO_Handler) {
+            $_2082569957->delete();
+        }
+        unlink(__DIR__ . '/../lib/sypexgeo/SxGeoCity.dat');
+        unlink(__DIR__ . '/../lib/sypexgeo/SxGeo.upd');
+        unlink(__DIR__ . '/../lib/sypexgeo/sypexGeoUpdate.log');
+        SypexGeoUpdater::removeAgent();
     }
 
     function UnInstallEvents()
     {
+        EventManager::getInstance()->registerEventHandler('main', 'onMainGeoIpHandlersBuildList', 'kit.regions', '\\' . \Kit\Regions\EventHandlers::class, "addGeoIpServes",);
+//        EventManager::getInstance()->registerEventHandler('main', 'onMainGeoIpHandlersBuildList', 'kit.regions', '\\Kit\Regions\EventHandlers::class, "addGeoIpServes"',);
         EventManager::getInstance()->unRegisterEventHandler('sale', 'OnSaleComponentOrderProperties', 'kit.regions', '\Kit\Regions\EventHandlers', 'OnSaleComponentOrderPropertiesHandler');
         EventManager::getInstance()->unRegisterEventHandler('main', 'OnEndBufferContent', 'kit.regions', '\Kit\Regions\EventHandlers', 'OnEndBufferContentHandler');
         EventManager::getInstance()->unRegisterEventHandler('main', 'OnUserTypeBuildList', 'kit.regions', '\Kit\Regions\EventHandlers', 'OnUserTypeBuildListHandlerHtml');
@@ -347,21 +382,21 @@ class kit_regions extends CModule
         return true;
     }
 
-    function unInstallData($_824762740)
+    function unInstallData($_1260573971)
     {
-        $_1622258214 = new \CUserTypeEntity;
-        $_966293903 = $_1622258214->GetList(array(), array('ENTITY_ID' => 'KIT_REGIONS'));
-        while ($_831231980 = $_966293903->Fetch()) {
-            $_569462997 = $_1622258214->Delete($_831231980['ID']);
+        $_135703835 = new \CUserTypeEntity;
+        $_1516249333 = $_135703835->GetList(array(), array('ENTITY_ID' => 'KIT_REGIONS'));
+        while ($_500713783 = $_1516249333->Fetch()) {
+            $_1057636470 = $_135703835->Delete($_500713783['ID']);
         }
         return true;
     }
 
-    function KitRegionsGetAllFiles($_1563539514)
+    function KitRegionsGetAllFiles($_1602241508)
     {
     }
 
-    function KitRegionsDeleteFiles($_1682650181)
+    function KitRegionsDeleteFiles($_671367095)
     {
     }
 }

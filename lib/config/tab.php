@@ -1,4 +1,10 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: Sergey
+ * Date: 22-Jan-18
+ * Time: 4:25 PM
+ */
 namespace Kit\Regions\Config;
 /**
  * Class Tab

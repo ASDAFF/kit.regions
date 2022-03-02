@@ -18,6 +18,7 @@ use Kit\Regions;
  * Class Calculation
  *
  * @package Kit\Regions\Sale
+ * Date: 24.10.2019
  */
 class Calculation
 {

@@ -1,4 +1,10 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: Sergey
+ * Date: 23-Jan-18
+ * Time: 9:03 AM
+ */
 
 namespace Kit\Regions\Config;
 

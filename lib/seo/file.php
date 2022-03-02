@@ -7,6 +7,7 @@ use Bitrix\Main\Result;
  * Class File
  *
  * @package Kit\Regions\Seo
+ * Date: 18.12.2019
  */
 abstract class File
 {

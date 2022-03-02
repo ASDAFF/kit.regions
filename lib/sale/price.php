@@ -12,12 +12,14 @@ use Bitrix\Main\Loader;
  */
 class Price
 {
+    private static $basketIsChanget = false;
+
     /**
      * get id prices for region
      *
      * @return array
      */
-    public function getPriceIds()
+    public static function getPriceIds()
     {
         $return = [];
         if ($_SESSION['KIT_REGIONS']['PRICE_CODE']) {
@@ -85,7 +87,7 @@ class Price
      *
      * @return array
      */
-    public function changeElPrice($el = [], $priceIds = [])
+    public static function changeElPrice($el = [], $priceIds = [])
     {
         if ($el['MIN_PRICE']
             && in_array($el['MIN_PRICE']['PRICE_ID'], $priceIds)
@@ -128,7 +130,7 @@ class Price
      *
      * @return array
      */
-    private function changeMin($price = [])
+    private static function changeMin($price = [])
     {
         if ($_SESSION['KIT_REGIONS']['PRICE_VALUE']) {
             switch ($_SESSION['KIT_REGIONS']['PRICE_VALUE_TYPE']) {
@@ -321,8 +323,12 @@ class Price
     /**
      * @throws \Bitrix\Main\LoaderException
      */
-    public function changeBasket()
+    public static function changeBasket()
     {
+        if (self::$basketIsChanget) {
+            return;
+        }
+
         if (Loader::includeModule("sale")
             && Loader::includeModule("catalog")
         ) {
@@ -430,5 +436,7 @@ class Price
                 }
             }
         }
+
+        self::$basketIsChanget = true;
     }
 }

@@ -28,6 +28,7 @@
 	margin-bottom: 10px;
 }
 
+
 .select-city__dropdown {
 	background-color: #ffffff;
 	box-shadow: 0px 5px 5px 0px rgba(0, 0, 0, 0.22);
@@ -76,6 +77,7 @@
 	justify-content: center;
 }
 
+
 .select-city__modal {
 	position: fixed;
 	top: 0;
@@ -83,11 +85,9 @@
 	bottom: 0;
 	left: 0;
 	z-index: 3000;
-	display: none;
 }
 
 .modal__overlay {
-	display: none;
 	position: fixed;
 	left: 0;
 	top: 0;
@@ -311,4 +311,18 @@
 	color:red;
 	position:absolute;
 	top:-20px;
+}
+
+.select-city__modal__submit__vars {
+	position: absolute;
+	top: 100%;
+	left: 0px;
+	background-color: #fff;
+	box-shadow: 2px 3px 3px #a0a0a0;
+	padding: 3px;
+	cursor: pointer;
+}
+
+.select-city__modal__submit__vars .regions_vars:hover {
+	background-color: #f0f0f0;
 }

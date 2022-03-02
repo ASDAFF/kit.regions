@@ -36,7 +36,7 @@ class EventHandlers
      * @throws \Bitrix\Main\LoaderException
      * @throws \Bitrix\Main\SystemException
      */
-    public function OnSaleComponentOrderPropertiesHandler(
+    public static function OnSaleComponentOrderPropertiesHandler(
         &$arUserResult,
         $request,
         &$arParams,
@@ -47,7 +47,7 @@ class EventHandlers
         $request = $context->getRequest();
         if(!$request->isAdminSection())
         {
-            if(!Loader::includeModule('kit.regions'))
+            if(!Loader::includeModule('kit.regions') || \KitRegions::isDemoEnd())
             {
                 return true;
             }
@@ -94,6 +94,7 @@ class EventHandlers
             $city = \Bitrix\Sale\Location\LocationTable::getList([
                 'filter' => [
                     'TYPE_ID' => LocationType::getCity(),
+                    'NAME.LANGUAGE_ID' => LANGUAGE_ID,
                     $orderPropLocation
                 ],
                 'order' => ['SORT' => 'ASC'],
@@ -115,14 +116,16 @@ class EventHandlers
      * @throws \Bitrix\Main\LoaderException
      * @throws \Bitrix\Main\SystemException
      */
-    public function OnEndBufferContentHandler(&$content)
+    public static function OnEndBufferContentHandler(&$content)
     {
         $context = Application::getInstance()->getContext();
         $request = $context->getRequest();
         if(
             !$request->isAdminSection() &&
 //            !$request->isAjaxRequest() &&
-            Loader::includeModule('kit.regions'))
+            Loader::includeModule('kit.regions') &&
+            !\KitRegions::isDemoEnd()
+        )
         {
             $domain = new Domain();
             $content = $domain->getVariables()->replaceContent($content);
@@ -136,7 +139,7 @@ class EventHandlers
      * @param $message_id
      * @throws \Bitrix\Main\SystemException
      */
-    public function OnBeforeEventAddHandler(&$event, &$lid, &$arFields, &$message_id)
+    public static function OnBeforeEventAddHandler(&$event, &$lid, &$arFields, &$message_id)
     {
         if($event == 'STATISTIC_DAILY_REPORT')
         {
@@ -165,7 +168,7 @@ class EventHandlers
      * @throws \Bitrix\Main\LoaderException
      * @throws \Bitrix\Main\SystemException
      */
-    public function OnBeforeMailSendHandler($mailParams)
+    public static function OnBeforeMailSendHandler($mailParams)
     {
         $parameters = $mailParams->getParameters();
         $newParams = [];

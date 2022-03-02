@@ -89,6 +89,10 @@ if(!empty($domain->getProp("UF_ROBOTS")))
                 }
 
                 $robots = str_replace(
+                    'Host: www.' . $domain,
+                    '<?=str_replace(array("http://","https://"),"", "Host: www." . $domainCode) . PHP_EOL?>',
+                    $robots);
+                $robots = str_replace(
                     $domain,
                     '<?=str_replace(array("http://","https://"),"",$domainCode)?>',
                     $robots);

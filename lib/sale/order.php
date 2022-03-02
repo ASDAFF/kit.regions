@@ -59,7 +59,7 @@ class Order
             'NAME' => Loc::getMessage(\KitRegions::moduleId.'_PROP_TITLE'),
             'CODE' => 'REGION',
         ));
-        $prop->setValue( ( isset($_SESSION['KIT_REGIONS']['LOCATION']['SALE_LOCATION_LOCATION_NAME_NAME']) ? $_SESSION['KIT_REGIONS']['LOCATION']['SALE_LOCATION_LOCATION_NAME_NAME'] : $_SESSION['KIT_REGIONS']['NAME'] ) );
+        $prop->setValue($_SESSION['KIT_REGIONS']['LOCATION']['SALE_LOCATION_LOCATION_NAME_NAME'] ?? $_SESSION['KIT_REGIONS']['NAME']);
         $return = $prop;
 
         return $return;

@@ -1,5 +1,6 @@
 <?php
 $idModule = 'kit.regions';
+$MESS['kit_regions._DOFOLT_DOMEN_SHOULD_BE'] = 'URL Основного домена должен быть ';
 $MESS[$idModule.'_NEW'] = 'Добавить регион';
 $MESS[$idModule.'_EDIT'] = 'Изменить регион: #NAME#';
 $MESS[$idModule.'_REGION'] = 'Регион';

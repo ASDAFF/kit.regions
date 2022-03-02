@@ -22,7 +22,8 @@ class AdminArea
         ];
 
 		if(
-			Loader::includeModule(\KitRegions::moduleId)
+			Loader::includeModule(\KitRegions::moduleId) &&
+			!\KitRegions::isDemoEnd()
             && in_array($curPage, $workPages)
 		)
 		{

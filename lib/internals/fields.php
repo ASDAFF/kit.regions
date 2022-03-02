@@ -1,8 +1,12 @@
 <?php
 namespace Kit\Regions\Internals;
 
-use Bitrix\Main,
-	Bitrix\Main\Localization\Loc;
+use Bitrix\Main;
+use	Bitrix\Main\Localization\Loc;
+use	Bitrix\Main\ORM\Data\DataManager;
+use Bitrix\Main\ORM\Event;
+use Bitrix\Main\ORM\Fields\ExpressionField;
+use Bitrix\Main\ORM\Fields\Validators\LengthValidator;
 Loc::loadMessages(__FILE__);
 
 /**
@@ -19,7 +23,7 @@ Loc::loadMessages(__FILE__);
  * @package Kit\Regions
  **/
 
-class FieldsTable extends Main\Entity\DataManager
+class FieldsTable extends DataManager
 {
 	/**
 	 * Returns DB table name for entity.
@@ -59,7 +63,7 @@ class FieldsTable extends Main\Entity\DataManager
 				'data_type' => 'text',
 				'title' => Loc::getMessage('FIELDS_ENTITY_VALUE_FIELD'),
 			),
-			new Main\Entity\ReferenceField(
+			new ExpressionField(
 				'REGION',
 				'Kit\Regions\Internals\RegionsTable',
 				array('=this.ID_REGION' => 'ref.ID')
@@ -75,29 +79,21 @@ class FieldsTable extends Main\Entity\DataManager
 	public static function validateCode()
 	{
 		return array(
-			new Main\Entity\Validator\Length(null, 255),
+			new LengthValidator(null, 255),
 		);
 	}
-	/**
-	 * @param Main\Entity\Event $event
-	 */
-	public static function OnAdd(Main\Entity\Event $event)
+
+	public static function OnAdd(Event $event)
 	{
 		FieldsTable::getEntity()->cleanCache();
 	}
 
-	/**
-	 * @param Main\Entity\Event $event
-	 */
-	public static function OnUpdate(Main\Entity\Event $event)
+	public static function OnUpdate(Event $event)
 	{
 		FieldsTable::getEntity()->cleanCache();
 	}
 
-	/**
-	 * @param Main\Entity\Event $event
-	 */
-	public static function OnDelete(Main\Entity\Event $event)
+	public static function OnDelete(Event $event)
 	{
 		FieldsTable::getEntity()->cleanCache();
 	}

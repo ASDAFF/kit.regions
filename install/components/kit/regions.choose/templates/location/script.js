@@ -1,356 +1,311 @@
-window.KitRegions = function(arParams) {
+class RegionsChoose {
 
-    var wrap = document.getElementsByClassName("select-city__dropdown-wrap");
-    var modal = document.getElementsByClassName("select-city__modal");
-    var yes = document.getElementsByClassName("select-city__dropdown__choose__yes");
-    var no = document.getElementsByClassName("select-city__dropdown__choose__no");
-    var textCity = document.getElementsByClassName("select-city__block__text-city");
-    var close = document.getElementsByClassName("select-city__close");
+    constructor() {
+
+        this.getRegion();
+
+        this.rootId = 'regions_choose_component';
+        this.rootDropDownId = 'regions_choose_component_dropdown';
+        this.selectRegionID = 'regon_choose_select-city__modal';
+        this.selectRegionOverlayID = 'regon_choose_modal__overlay';
+    
+        this.questionRegionId = null;
+        this.currentRegionId = null;
+        this.loctionList = null;
+
+        this.bigCityList = null;
+        this.countryList = null;
+        this.activCountry = null;
+        this.defoultExampleRegion = null;
 
 
-    var tabContent = document.getElementsByClassName("select-city__tab_content");
+        this.root = document.getElementById(this.rootId);
+        this.rootDropDown = document.getElementById(this.rootDropDownId);
+        this.selectRegion = document.getElementById(this.selectRegionID);
 
-
-    var params = JSON.parse(arParams.arParams);
-
-    try {
-        if(yes.length) {
-            for (let i = 0; i < yes.length; i++) {
-                yes[i].addEventListener('click',function () {
-                    wrap[0].style.display = 'none';
-                    if(params.FROM_LOCATION == 'Y')
-                    {
-                        var idLocation = yes[0].dataset.id;
-                        var idRegion = yes[0].dataset.regionId;
-                        var codeRegion = yes[0].dataset.code;
-
-                        SetCookie('kit_regions_location_id',idLocation,{'domain': '.' + arParams.rootDomain});
-                        SetCookie('kit_regions_city_choosed','Y',{'domain': '.' + arParams.rootDomain});
-                        SetCookie('kit_regions_id', idRegion,{'domain': '.' + arParams.rootDomain});
-                        if(arParams.singleDomain != 'Y' && codeRegion)
-                            document.location.href = codeRegion;
-                    }
-                    else{
-                        SetCookie('kit_regions_city_choosed','Y',{'domain': '.' + arParams.rootDomain});
-                        SetCookie('kit_regions_id',yes[0].dataset.id,{'domain': '.' + arParams.rootDomain});
-
-                        if(arParams.singleDomain != 'Y')
-                        {
-                            var url = '';
-                            for(var i = 0; i < arParams.list.length; ++i)
-                            {
-                                if(arParams.list[i]['ID'] == yes[0].dataset.id)
-                                {
-                                    url = arParams.list[i]['URL'];
-                                }
-                            }
-                            if(url.length > 0)
-                            {
-                                document.location.href=url;
-                            }
-                        }
-                        else
-                        {
-                            //location.reload();
-                        }
-                    }
-                });
-            }
-        }
-
-    } catch (e) {
-        console.warn('Btn "Yes" not found ', e)
+        this.setEvents();
     }
 
-
-    try {
-        if(no.length) {
-            for (let i = 0; i < no.length; i++) {
-                no[i].addEventListener('click',function () {
-                    Open();
-                });
-            }
+    getEntity(parent, entity, all=false) {
+        if (!parent || !entity) {
+            return null;
         }
-    } catch (e) {
-        console.warn('Btn "No" not found ', e)
+        if (all) {
+            return parent.querySelectorAll('[data-entity="' + entity + '"]');
+        }
+        return parent.querySelector('[data-entity="' + entity + '"]');
     }
 
-    try {
-        if (textCity.length) {
-            for (let i = 0; i < textCity.length; i++) {
-                textCity[i].addEventListener('click',function ()
-                {
-                    Open();
-                });
-            }
-        }
-    } catch (e) {
-        console.warn('Btn "City" not found ', e)
+    setEvents() {
+        const yesBtn = this.getEntity(this.rootDropDown, 'select-city__dropdown__choose__yes');
+        const notBnt = this.getEntity(this.rootDropDown, 'select-city__dropdown__choose__no');
+        const cityName = this.getEntity(this.root, 'select-city__block__text-city');
+        const selectRegionClose = this.getEntity(this.selectRegion, 'select-city__close');
+        const searchLine = this.getEntity(this.selectRegion, 'select-city__modal__submit__input');
+
+        this.defoultExampleRegion = this.getEntity(this.selectRegion, 'select-city__input__example').cloneNode(true);
+
+        yesBtn.addEventListener('click', () => this.onSetRegion(this.questionRegionId));
+        notBnt.addEventListener('click', () => this.onShowALLRegions());
+        cityName.addEventListener('click', () => this.onShowALLRegions());
+        selectRegionClose.addEventListener('click', () => this.onSelectRegionShow(false));
+        searchLine.addEventListener('input', e => this.onInputSearch(e));
+
     }
 
-    function Open()
-    {
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", arParams.templateFolder+'/ajax.php', false);
-        xhr.send();
-        modal[0].innerHTML = xhr.responseText;
-        close[0].addEventListener('click',function ()
-        {
-            Close();
-        });
+    onSetRegion(regionId) {
+        BX.ajax.runAction('kit:regions.ChooseComponentController.setRegion', {
+            data: {regionId: regionId},
+        }).then(
+            (res) => res.data.actions.forEach(i => this[i](res.data)),
+            (err) => {console.log(err)},
+        )
+    }
 
-        var tab = document.getElementsByClassName("select-city__tab");
-        for(var i = 0; i < tab.length; ++i){
-            tab[i].addEventListener('click',function ()
-            {
-                if(this.classList.contains('active')){
-                    return false;
-                }
-                for(var j = 0; j < tab.length; ++j)
-                {
-                    tab[j].classList.remove('active');
-                }
-                this.classList.add('active');
-                for(var j = 0; j < tabContent.length; ++j){
-                    tabContent[j].classList.remove('active');
-                    if(tabContent[j].dataset.countryId == this.dataset.countryId){
-                        tabContent[j].classList.add('active');
-                    }
-                }
+    dropDownShow(action) {
+        if (action) {
+            this.rootDropDown.setAttribute('style', 'display: block;');
+        } else {
+            this.rootDropDown.setAttribute('style', 'display: none;');
+        }
+    }
+
+    onShowALLRegions(countryId=Number.MAX_SAFE_INTEGER) {
+
+        if (this.loctionList !== null && countryId === Number.MAX_SAFE_INTEGER) {
+            return this.SHOW_SELECT_REGIONS({
+                allRegions: this.loctionList,
+                locationTemplateData: {activ: this.activCountry}
             });
         }
 
-        var input = document.getElementById("region-input");
-        input.addEventListener('input',function(){
-            var list = document.getElementsByClassName("select-city__list_item");
-            var letters = document.getElementsByClassName("select-city__list_letter_wrapper");
-            var value = this.value.toLowerCase();
-            if(list.length){
-                for(var i = 0; i < list.length; ++i){
-                    list[i].style.display = "block";
-                    let city = list[i].innerHTML.toLowerCase().trim();
-                    if(value.length > 0){
-                        if(city.substr(0,value.length) != value){
-                            list[i].style.display = "none";
-                        }
-                    }
-                }
-            }
-            if(letters.length){
-                for(var i = 0; i < letters.length; ++i){
-                    var was = false;
-                    var child = letters[i].childNodes;
-                    for(var j=0; j<child.length; ++j){
-                        if(child[j].className == 'select-city__list'){
-                            let child2 = child[j].childNodes;
-                            if(child2.length){
-                                for(var k=0; k<child2.length; ++k){
-                                    if(child2[k].className == 'select-city__list_item'){
-                                        let style = getComputedStyle(child2[k]);
-                                        if(style.display != 'none'){
-                                            was = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    letters[i].style.display = "block";
-                    if(!was){
-                        letters[i].style.display = "none";
-                    }
-                }
-            }
+        BX.ajax.runAction('kit:regions.ChooseComponentController.showLocations', {
+            data: {countryId}
+        })
+            .then(
+                (res) => res.data.actions.forEach(i => this[i](res.data)),
+                (err) => console.log(err),
+            )
+    }
+
+    getRegion(deleteCookies=false) {
+
+        const query = new URLSearchParams(window.location.search);
+
+        const params = deleteCookies
+            ? {deletCookies: 1}
+            : {redirectRegionId: query.get('redirectRegionId')}
+
+        this.removeRegionGetParams(query);
+
+        BX.ajax.runAction('kit:regions.ChooseComponentController.getRegion', {
+            data: params,
+        })
+        .then(
+            (res) => res.data.actions.forEach(i => this[i](res.data)),
+            (err) => console.log(err),
+        )
+
+    }
+
+    onSelectRegionShow(action) {
+        if (action) {
+            this.selectRegion.setAttribute('style', 'display: block;');
+        } else {
+            this.selectRegion.setAttribute('style', 'display: none;');
+        }
+    }
+
+    SHOW_REGION_NAME ({currentRegionName}) {
+        const elment = this.getEntity(this.root, 'select-city__block__text-city');
+        elment.innerText = currentRegionName;
+    }
+
+    SHOW_QUESTION ({currentRegionName, currentRegionId}) {
+        this.questionRegionId = currentRegionId;
+        this.dropDownShow(true);
+        const element = this.getEntity(this.rootDropDown, 'select-city__dropdown__title');
+        element.innerText = element.textContent.replace('###', currentRegionName).trim();
+    }
+
+    CONFIRM_DOMAIN ({currentRegionName}) {
+        this.dropDownShow(false);
+        const elemnt = this.getEntity(this.root, 'select-city__block__text-city');
+        elemnt.innerText = currentRegionName;
+        this.getEntity(this.selectRegion, 'select-city__js').innerText = currentRegionName;
+    }
+
+    SHOW_SELECT_REGIONS ({allRegions, locationTemplateData}) {
+
+        this.onSelectRegionShow(true);
+
+        if (locationTemplateData === null) {
+            locationTemplateData = {
+                bigCity: allRegions,
+                country: {},
+                activ: 0,
+            };
+        }
+
+        if (this.activCountry === locationTemplateData['activ']) {
+            return;
+        }
+
+        this.loctionList = allRegions;
+        this.countryList = locationTemplateData['country'];
+        this.activCountry = locationTemplateData['activ'];
+        this.bigCityList = locationTemplateData['bigCity'];
+
+        this.citysRender();
+        this.renderCountryTabs();
+    }
+
+    REDIRECT_TO_SUBDOMAIN ({currentRegionCode, currentRegionId}) {
+        const hostName = window.location.hostname;
+        const protocol = window.location.protocol;
+        const newUrl = window.location.href.replace(hostName, currentRegionCode);
+        const url = new URL(newUrl, `${protocol}${currentRegionCode}`);
+        url.searchParams.set('redirectRegionId', currentRegionId);
+        window.location.href = url.toString();
+    }
+
+    onInputSearch(e) {
+        this.searchLine = e.currentTarget.value;
+        this.citysRender();
+    }
+
+    citysRender() {
+
+        const bitCityWraper = this.getEntity(
+            this.getEntity(this.selectRegion, 'select-city__list_wrapper_favorites'),
+            'select-city__list',
+        );
+        const litersWrapper = this.getEntity(this.selectRegion, 'select-city__list_wrapper_cities');
+        const exapmleRegions = this.getEntity(this.selectRegion, 'select-city__input__example');
+
+        Array.from(bitCityWraper.childNodes).forEach(i => i.remove());
+        Array.from(litersWrapper.childNodes).forEach(i => i.remove());
+        Array.from(exapmleRegions.childNodes).forEach(i => i.remove());
+        exapmleRegions.innerHTML = this.defoultExampleRegion.innerHTML;
+
+        if (!!this.bigCityList && Object.keys(this.bigCityList).length !== 0) {
+            this.getEntity(this.selectRegion, 'select-city__tab_name_content__big_city')
+                .setAttribute('style', 'display: block;');
+        } else {
+            this.getEntity(this.selectRegion, 'select-city__tab_name_content__big_city')
+                .setAttribute('style', 'display: none;');
+        }
+
+        Object.keys(this.bigCityList)
+            .filter(i => new RegExp(this.searchLine, 'i').test(this.bigCityList[i]))
+            .forEach(i => {
+                const element = document.createElement('p');
+                element.setAttribute('class', 'select-city__list_item');
+                element.innerText = this.bigCityList[i];
+                element.addEventListener('click', () => {
+                    this.onSetRegion(i);
+                });
+                bitCityWraper.append(element);
+            });
+
+        const liters = new Set(
+            Object.values(this.loctionList)
+                .filter(i => new RegExp(this.searchLine, 'i').test(i))
+                .map(i => i[0])
+        );
+
+        Array.from(liters).forEach(i => {
+            const oneliterWrapper = document.createElement('div')
+            oneliterWrapper.setAttribute('class', 'select-city__list_letter_wrapper');
+
+            const literElem = document.createElement('div');
+            literElem.setAttribute('class', 'select-city__list_letter');
+            literElem.innerText = i;
+            oneliterWrapper.append(literElem);
+
+            const citysWrapper = document.createElement('div');
+            citysWrapper.setAttribute('class', 'select-city__list');
+            Object.keys(this.loctionList)
+                .filter(j => i === this.loctionList[j][0])
+                .filter(i => new RegExp(this.searchLine, 'i').test(this.loctionList[i]))
+                .forEach(cityId => {
+                    const cityElem = document.createElement('p');
+                    cityElem.setAttribute('class', 'select-city__list_item');
+                    cityElem.addEventListener('click', () => {
+                        this.onSetRegion(cityId);
+                    });
+                    cityElem.innerText = this.loctionList[cityId];
+                    citysWrapper.append(cityElem);
+                });
+
+            oneliterWrapper.append(citysWrapper);
+            litersWrapper.append(oneliterWrapper);
+        })
+
+
+        const regionKeys = Object.keys(this.loctionList);
+        Array.from(exapmleRegions.querySelectorAll('span')).forEach((item, index) => {
+            item.innerText = this.loctionList[regionKeys[index]];
+            item.addEventListener('click', () => {
+                this.onSetRegion(regionKeys[index]);
+            });
         });
 
-        let cityTitle = document.getElementsByClassName("select-city__modal__title");
+    }
 
-        if(cityTitle.length)
-        {
-            if (cityTitle[0].children.length)
-            {
-                for (var i = 0; i < cityTitle[0].children.length; ++i)
-                {
-                    cityTitle[0].children[i].addEventListener('click', function ()
-                    {
-                        var idLocation = this.dataset.index;
-                        if(idLocation !== undefined && idLocation > 0){
-                            if(params.FROM_LOCATION == 'Y'){
-                                SetCookie('kit_regions_location_id',idLocation,{'domain': '.' + arParams.rootDomain});
-                                SetCookie('kit_regions_city_choosed','Y',{'domain': '.' + arParams.rootDomain});
+    renderCountryTabs() {
+        const countryWrap = this.getEntity(this.selectRegion, 'kit-regions-tabs');
 
-                                var xhr = new XMLHttpRequest();
-                                var body = 'id=' + idLocation+'&action=getDomainByLocation';
-                                xhr.open("POST", arParams.componentFolder+'/ajax.php', false);
-                                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        if (Array.from(countryWrap.childNodes).filter(i => i instanceof HTMLLIElement).length > 0) {
+            return;
+        }
 
-                                xhr.onreadystatechange = function() {
-                                    if (this.readyState != 4) return;
-                                    var answer = JSON.parse(this.responseText);
-                                    if(answer.ID){
-                                        SetCookie('kit_regions_id',answer.ID,{'domain': '.' + arParams.rootDomain});
-                                        if(arParams.singleDomain == 'Y')
-                                        {
-                                            location.reload();
-                                        }
-                                        else
-                                        {
-                                            document.location.href=answer.CODE;
-                                        }
-                                    }
-                                }
-                                xhr.send(body);
-                            }
+        const activClass = 'active';
+
+        Object.keys(this.countryList).forEach(i => {
+
+            const element = document.createElement('li');
+            if (this.activCountry === i) {
+                element.setAttribute('class', `select-city__tab ${activClass}`);
+            } else {
+                element.setAttribute('class', 'select-city__tab');
+            }
+
+            element.innerText = this.countryList[i];
+
+            element.addEventListener('click', () => {
+                if (element.classList.contains(activClass)) {
+                    return;
+                }
+
+                const newCountryWrap = this.getEntity(this.selectRegion, 'kit-regions-tabs');
+                    Array.from(newCountryWrap.childNodes).forEach(j =>  {
+                        if (j instanceof HTMLLIElement) {
+                            j.classList.remove(activClass)
                         }
                     });
+
+                element.classList.add(activClass);
+                this.onShowALLRegions(i);
+
+            })
+
+            countryWrap.append(element);
+
+            countryWrap.childNodes.forEach(i => {
+                if (!(i instanceof HTMLLIElement)) {
+                    return;
                 }
-            }
-        }
+            })
 
-        let cityInMessage = document.getElementsByClassName("select-city__under_input");
-        if(cityInMessage.length){
-            if(cityInMessage[0].children.length){
-                for(var i =0;i<cityInMessage[0].children.length;++i){
-                    cityInMessage[0].children[i].addEventListener('click',function (){
-                        var idLocation = this.dataset.locationId;
-                        if(idLocation !== undefined && idLocation > 0){
-                            if(params.FROM_LOCATION == 'Y'){
-
-                                SetCookie('kit_regions_location_id',idLocation,{'domain': '.' + arParams.rootDomain});
-                                SetCookie('kit_regions_city_choosed','Y',{'domain': '.' + arParams.rootDomain});
-
-                                var xhr = new XMLHttpRequest();
-                                var body = 'id=' + idLocation+'&action=getDomainByLocation';
-                                xhr.open("POST", arParams.componentFolder+'/ajax.php', false);
-                                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-
-                                xhr.onreadystatechange = function() {
-                                    if (this.readyState != 4) return;
-                                    var answer = JSON.parse(this.responseText);
-                                    if(answer.ID){
-                                        SetCookie('kit_regions_id',answer.ID,{'domain': '.' + arParams.rootDomain});
-                                        if(arParams.singleDomain == 'Y')
-                                        {
-                                            location.reload();
-                                        }
-                                        else
-                                        {
-                                            document.location.href=answer.CODE;
-                                        }
-                                    }
-                                }
-                                xhr.send(body);
-                            }
-                        }
-                    });
-                }
-            }
-        }
-
-        var item = document.getElementsByClassName("select-city__list_item");
-        for(var i = 0; i < item.length; ++i)
-        {
-            item[i].addEventListener('click',function ()
-            {
-                if(params.FROM_LOCATION == 'Y')
-                {
-                    var id = this.getAttribute('data-index');
-                    SetCookie('kit_regions_city_choosed', 'Y', {'domain': '.' + arParams.rootDomain});
-                    SetCookie('kit_regions_location_id', id, {'domain': '.' + arParams.rootDomain});
-
-                    var xhr = new XMLHttpRequest();
-                    var body = 'id=' + encodeURIComponent(id) + '&action=getDomainByLocation';
-                    xhr.open("POST", arParams.componentFolder + '/ajax.php', true);
-                    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-
-                    xhr.onreadystatechange = function ()
-                    {
-                        if (this.readyState != 4) return;
-                        let answer = JSON.parse(this.responseText);
-                        if (answer.ID)
-                        {
-                            SetCookie('kit_regions_id', answer.ID, {'domain': '.' + arParams.rootDomain});
-                            if (arParams.singleDomain == 'Y')
-                            {
-                                location.reload();
-                            }
-                            else
-                            {
-                                document.location.href = answer.CODE;
-                            }
-                        }
-                    }
-                    xhr.send(body);
-                }
-                else{
-                    var id = this.getAttribute('data-index');
-                    SetCookie('kit_regions_city_choosed', 'Y', {'domain': '.' + arParams.rootDomain});
-                    SetCookie('kit_regions_id', id, {'domain': '.' + arParams.rootDomain});
-                    if (arParams.singleDomain == 'Y')
-                    {
-                        location.reload();
-                    }
-                    else
-                    {
-                        var url = '';
-                        for(var i = 0; i < arParams.list.length; ++i)
-                        {
-                            if(arParams.list[i]['ID'] == id)
-                            {
-                                url = arParams.list[i]['URL'];
-                            }
-                        }
-                        if(url.length > 0)
-                        {
-                            document.location.href=url;
-                        }
-                    }
-                }
-            });
-        }
-
-        wrap[0].style.display = 'none';
-        if(!document.querySelector('body > .select-city__modal')) {
-            document.body.appendChild(modal[0]);
-        }
-        document.querySelector("body > .select-city__modal").style.display = 'block';
+        });
     }
-    function Close()
-    {
-        document.querySelector("body > .select-city__modal").style.display = 'none';
+
+    removeRegionGetParams(query) {
+        if (query.has('redirectRegionId')) {
+            const url = new URL(window.location.href, window.location.href);
+            url.searchParams.delete('redirectRegionId');
+            window.history.replaceState(null, '', url)
+        }
     }
-    function SetCookie(name, value, options)
-    {
-        options = options || {};
-
-        var expires = options.expires;
-
-        if (typeof expires == "number" && expires)
-        {
-            var d = new Date();
-            d.setTime(d.getTime() + expires * 1000);
-            expires = options.expires = d;
-        }
-        if (expires && expires.toUTCString)
-        {
-            options.expires = expires.toUTCString();
-        }
-        options.path = '/';
-        value = encodeURIComponent(value);
-
-        var updatedCookie = name + "=" + value;
-
-        for (var propName in options)
-        {
-            updatedCookie += "; " + propName;
-            var propValue = options[propName];
-            if (propValue !== true)
-            {
-                updatedCookie += "=" + propValue;
-            }
-        }
-        document.cookie = updatedCookie;
-    }
-};
-
+}

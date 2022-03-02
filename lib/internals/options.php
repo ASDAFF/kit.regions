@@ -1,9 +1,10 @@
 <?php
 namespace Kit\Regions\Internals;
 
-use Bitrix\Main,
-	Bitrix\Main\Localization\Loc,
-	Bitrix\Main\Entity;
+use	Bitrix\Main\Localization\Loc;
+use	Bitrix\Main\ORM\Data\DataManager;
+use Bitrix\Main\ORM\Event;
+use Bitrix\Main\ORM\Fields\Validators\LengthValidator;
 
 Loc::loadMessages(__FILE__);
 
@@ -20,7 +21,7 @@ Loc::loadMessages(__FILE__);
  * @package Bitrix\Regions
  **/
 
-class OptionsTable extends Main\Entity\DataManager
+class OptionsTable extends DataManager
 {
 	/**
 	 * Returns DB table name for entity.
@@ -66,7 +67,7 @@ class OptionsTable extends Main\Entity\DataManager
 	public static function validateCode()
 	{
 		return array(
-			new Main\Entity\Validator\Length(null, 50),
+			new LengthValidator(null, 50),
 		);
 	}
 	/**
@@ -77,18 +78,18 @@ class OptionsTable extends Main\Entity\DataManager
 	public static function validateSiteId()
 	{
 		return array(
-			new Main\Entity\Validator\Length(null, 2),
+			new LengthValidator(null, 2),
 		);
 	}
-	public static function OnAdd(Entity\Event $event)
+	public static function OnAdd(Event $event)
 	{
 		\Kit\Regions\Internals\OptionsTable::getEntity()->cleanCache();
 	}
-	public static function OnUpdate(Entity\Event $event)
+	public static function OnUpdate(Event $event)
 	{
 		\Kit\Regions\Internals\OptionsTable::getEntity()->cleanCache();
 	}
-	public static function OnDelete(Entity\Event $event)
+	public static function OnDelete(Event $event)
 	{
 		\Kit\Regions\Internals\OptionsTable::getEntity()->cleanCache();
 	}

@@ -10,6 +10,7 @@ use Bitrix\Main\Localization\Loc;
  * Class Base
  *
  * @package Kit\Regions\Maps
+ * Date: 12.11.2019
  */
 class Base
 {

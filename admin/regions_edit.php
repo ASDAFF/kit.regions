@@ -6,13 +6,28 @@ use Kit\Regions\Internals\FieldsTable;
 use Kit\Regions\Internals\RegionsTable;
 use Kit\Regions\Internals\LocationsTable;
 use Bitrix\Sale\Internals\Input;
+use Bitrix\Main\Web;
+use Bitrix\Main\Context;
+use Bitrix\Main\SiteDomainTable;
 
 define('ENTITY_ID', 'KIT_REGIONS');
 define('MODULE_ID', 'kit.regions');
 
 require_once($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/main/include/prolog_admin_before.php');
+
 CUtil::InitJSCore(['jquery']);
 Loc::loadMessages(__FILE__);
+
+$request = $siteId = Context::getCurrent()->getRequest();
+$siteId = $request->getQuery('site');
+$sitedDomen = SiteDomainTable::query()
+    ->addSelect('DOMAIN')
+    ->where('LID', $siteId)
+    ->fetch()
+;
+$prtorocol = $request->isHttps() ? 'https://' : 'http://';
+$sitedDomen = $sitedDomen ? $prtorocol.$sitedDomen['DOMAIN'] : false;
+
 ?>
 
     <style>
@@ -20,12 +35,36 @@ Loc::loadMessages(__FILE__);
             display: none;
         }
     </style>
+    <script>
+        window.addEventListener('load', function() {
+            const defDomFild = document.getElementById('DEFAULT_DOMAIN');
+            const defDom = defDomFild.querySelector('label');
+            const domenFild = document.getElementById('tr_CODE');
+            const domen = domenFild.querySelector('input');
+            defDom.addEventListener('click', function(e) {
+                const checkBox = defDomFild.querySelector('input');
+                if(checkBox.checked) {
+                    return;
+                }
+                const rootDomen = '<?=$sitedDomen?>';
+                const cuurentDomen = domen.value;
+                if (rootDomen && rootDomen !== cuurentDomen) {
+                    e.preventDefault();
+                    return alert('<?=Loc::getMessage('kit_regions._DOFOLT_DOMEN_SHOULD_BE')?>'+rootDomen)
+                }
+            })
+        })
+    </script>
 
 <?php
 
 if (!Loader::includeModule(MODULE_ID)
     || !Loader::includeModule('fileman')
 ) {
+    return false;
+}
+
+if (\KitRegions::isDemoEnd()) {
     return false;
 }
 
@@ -496,6 +535,20 @@ $context = new CAdminContextMenu($aMenu);
 
 require_once($_SERVER['DOCUMENT_ROOT']
     .'/bitrix/modules/main/include/prolog_admin_after.php');
+
+
+if (\KitRegions::getDemo() == 2) {
+    CAdminMessage::ShowMessage([
+        "MESSAGE" => Loc::getMessage(\KitRegions::moduleId."_DEMO"),
+        'HTML'    => true,
+    ]);
+}
+if (\KitRegions::getDemo() == 3) {
+    CAdminMessage::ShowMessage([
+        "MESSAGE" => Loc::getMessage(\KitRegions::moduleId."_DEMO_END"),
+        'HTML'    => true,
+    ]);
+}
 
 
 $context->Show();

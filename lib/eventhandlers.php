@@ -1,4 +1,9 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * Date: 24-Jan-18
+ * Time: 4:28 PM
+ */
 
 namespace Kit\Regions;
 
@@ -6,7 +11,9 @@ use Bitrix\Main\Event;
 use Bitrix\Main\Loader;
 use Bitrix\Main\Page\Asset;
 use Kit\Regions\Helper\Menu;
-
+use Bitrix\Main\EventResult;
+use Kit\Regions\SypexGeo\SypexGeoLocal;
+use Bitrix\Main\Application;
 /**
  * Class EventHandlers
  *
@@ -16,6 +23,15 @@ class EventHandlers
 {
     public function OnBuildGlobalMenuHandler(&$arGlobalMenu, &$arModuleMenu){
         Menu::getAdminMenu($arGlobalMenu, $arModuleMenu);
+    }
+
+    public function addGeoIpServes()
+    {
+        $path = '/bitrix/modules/kit.regions/lib/sypexgeo/sypexgeolocal.php';
+        return new EventResult(
+            EventResult::SUCCESS,
+            ['\\' . SypexGeoLocal::class => $path],
+        );
     }
 
     /**

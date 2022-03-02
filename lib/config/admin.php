@@ -28,6 +28,32 @@ class Admin extends \KitRegions
 	}
 	public function show()
 	{
+		if (parent::getDemo() == 2)
+		{
+			?>
+			<div class="adm-info-message-wrap adm-info-message-red">
+				<div class="adm-info-message">
+					<div class="adm-info-message-title"><?=Loc::getMessage( parent::moduleId."_DEMO")?></div>
+					<div class="adm-info-message-icon"></div>
+				</div>
+			</div>
+			<?
+		}
+		if (parent::getDemo() == 3)
+		{
+			?>
+			<div class="adm-info-message-wrap adm-info-message-red">
+				<div class="adm-info-message">
+					<div class="adm-info-message-title"><?=Loc::getMessage( parent::moduleId."_DEMO_END")?></div>
+					<div class="adm-info-message-icon"></div>
+				</div>
+			</div>
+			<?
+		}
+		if(parent::isDemoEnd())
+		{
+			return false;
+		}
 		if($_REQUEST['update'] == 'Y' && $_REQUEST['mid'] == parent::moduleId)
 		{
 			$this->handleRequest($_REQUEST);
@@ -64,7 +90,7 @@ class Admin extends \KitRegions
 					{
 						$colspan = $widget->getSetting('COLSPAN');
 						echo '<tr><td width="50%" colspan="'.$colspan[0].'">';
-						echo Loc::getMessage(parent::moduleId.'_WIDGET_'.$widget->getCode());
+						echo Loc::getMessage(parent::moduleId.'_WIDGET_'.$widget->getCode()) ?? $widget->getCode();
 						echo ':</td><td width="50%" colspan="'.$colspan[1].'">';
 						$widget->show();
 						echo '</td></tr>';

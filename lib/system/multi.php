@@ -18,13 +18,13 @@ class Multi
         {
             $region = $this->getExistRegion($region);
             $userLocation = new \Kit\Regions\Location\User();
-            $userCity = $userLocation->getUserCity();
+            $userGeoData = $userLocation->getUserGeoData();
             if(!$this->withLocation)
-                $region['REAL_REGION'] = $this->getByName($userCity);
+                $region['REAL_REGION'] = $this->getByName($userGeoData->cityName);
             elseif(!$region['LOCATION'])
             {
                 $loc = new Location();
-                $region['LOCATION'] = $loc->getByName($userCity);
+                $region['LOCATION'] = $loc->findByGeodata($userGeoData);
                 $region['REAL_REGION'] = $loc->findRegionByIdLocation($region['LOCATION']['ID']);
             }
 

@@ -26,8 +26,8 @@ class Single
             $return = $region;
         }else{
             $userLocation = new User();
-            $userCity = $userLocation->getUserCity();
-            $region = $this->getByName($userCity);
+            $userGeoData = $userLocation->getUserGeoData();
+            $region = $this->getByName($userGeoData->cityName);
             $return = $region;
         }
 

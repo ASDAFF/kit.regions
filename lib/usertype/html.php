@@ -1,10 +1,9 @@
 <?php
+
 /**
- * Created by PhpStorm.
- * User: Sergey
- * Date: 30-Jan-18
- * Time: 2:00 PM
+ * Copyright (c) 2/3/2022 Created By/Edited By ASDAFF asdaff.asad@yandex.ru
  */
+
 namespace Kit\Regions\UserType;
 use Bitrix\Main\Localization\Loc;
 use Bitrix\Main\Entity;
@@ -12,7 +11,7 @@ use Bitrix\Main\Loader;
 class Html
 {
 	const USER_TYPE_ID = "html";
-	public function OnUserTypeBuildListHandler()
+	public static function OnUserTypeBuildListHandler()
 	{
 		return array(
 			"USER_TYPE_ID" => static::USER_TYPE_ID,

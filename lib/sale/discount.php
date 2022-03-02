@@ -10,6 +10,7 @@ use Kit\Regions\Location\Domain;
  * Class Discount
  *
  * @package Kit\Regions\Sale
+ * Date: 19.11.2019
  */
 class Discount extends \CSaleCondCtrlComplex
 {

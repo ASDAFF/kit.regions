@@ -8,6 +8,7 @@ use Bitrix\Sale\Internals;
  * Class Helper
  *
  * @package Kit\Regions\Sale
+ * Date: 24.10.2019
  */
 class Helper
 {

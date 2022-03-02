@@ -1,0 +1,65 @@
+@mixin padding($padding) {
+
+    .select_city-modal-title {
+        padding: 15px $padding;
+    }
+
+    .city_modal-content-wrapper {
+        padding: $padding 0 0 $padding;
+    }
+
+    .input-block-wrapper {
+        padding-right: $padding;
+    }
+
+    .select-city__tab_name_content__big_city {
+        padding-right: $padding;
+    }
+
+    .select-city__modal .select-city__list_item {
+        padding-right: $padding;
+    }
+}
+
+@media (max-width: 1023px) {
+
+    @include padding(20px);
+
+    .select-city__modal {
+        width: calc(100% - 20px);
+        height: calc(100% - 20px);
+        margin: 10px;
+    }
+
+    .select-city__modal-wrap {
+        max-height: 100%;
+        max-width: 100%;
+        height: 100%;
+        width: 100%;
+    }
+
+    .modal_title-text-wrapper {
+
+        .current_region-title {
+            display: none;
+        }
+
+        .current_region {
+            display: none;
+        }
+    }
+
+    .select-city__list_item {
+        width: 50%;
+    }
+}
+
+@media (max-width: 500px) {
+    .select-city__list_item {
+        width: 100%;
+    }
+}
+
+@media (max-width: 360px) {
+    @include padding(10px);
+}

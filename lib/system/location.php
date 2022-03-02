@@ -1,5 +1,10 @@
 <?php
 
+
+/**
+ * Copyright (c) 2/3/2022 Created By/Edited By ASDAFF asdaff.asad@yandex.ru
+ */
+
 namespace Kit\Regions\System;
 
 use Bitrix\Main\Loader;
@@ -9,6 +14,9 @@ use Kit\Regions\Location\User;
 use Kit\Regions\Location\Domain;
 use Kit\Regions\Helper\LocationType;
 use Bitrix\Main\Text\Encoding;
+use Bitrix\Main\ORM\Query;
+use Bitrix\Main\Service\GeoIp;
+use Bitrix\Sale\Location as SaleLocation;
 
 /**
  * Class Location
@@ -17,6 +25,12 @@ use Bitrix\Main\Text\Encoding;
  */
 class Location
 {
+
+    public function __construct()
+    {
+        Loader::includeModule('sale');
+    }
+
     /**
      * @return array
      * @throws \Bitrix\Main\ArgumentException
@@ -31,8 +45,8 @@ class Location
             $return = $region;
         } else {
             $userLocation = new User();
-            $userCity = $userLocation->getUserCity();
-            $location = $this->getByName($userCity);
+            $userGeoData = $userLocation->getUserGeoData();
+            $location = $this->findByGeodata($userGeoData);
             if ($location['ID'] > 0)
             {
                 $region = $this->findRegionByIdLocation($location['ID']);
@@ -52,36 +66,6 @@ class Location
     }
 
     /**
-     * @param string $name
-     *
-     * @return int
-     * @throws \Bitrix\Main\ArgumentException
-     */
-    public function getByName($name = '')
-    {
-        $return = [];
-        \Bitrix\Main\Loader::includeModule('sale');
-        $location = \Bitrix\Sale\Location\LocationTable::getList([
-            'filter' => [
-                '=NAME.NAME'        => Encoding::convertEncodingToCurrent($name),
-                '=NAME.LANGUAGE_ID' => LANGUAGE_ID
-            ],
-            'select' => [
-                '*',
-                'NAME.*',
-            ],
-            'cache'  => [
-                'ttl' => 36000000,
-            ],
-        ])->fetch();
-        if ($location['ID'] > 0) {
-            $return = $location;
-        }
-
-        return $return;
-    }
-
-    /**
      * @param int $idLocation
      *
      * @return array
@@ -93,23 +77,10 @@ class Location
         if ($idLocation > 0)
         {
             $return['CITY'] = $idLocation;
-//            $rs = \Bitrix\Sale\Location\LocationTable::getList([
-//                'filter' => [
-//                    '=ID'               => $idLocation,
-//                    '=NAME.LANGUAGE_ID' => LANGUAGE_ID,
-//                ],
-//                'select' => [
-//                    'PARENT.REGION_ID',
-//                    'PARENT.COUNTRY_ID',
-//                    'NAME_RU'      => 'PARENT.NAME.NAME',
-//                    'TYPE_CODE'    => 'PARENT.TYPE.CODE',
-//                    'TYPE_NAME_RU' => 'PARENT.TYPE.NAME.NAME',
-//                ],
-//            ]);
-            $rs = \Bitrix\Sale\Location\LocationTable::getList([
+
+            $rs = SaleLocation\LocationTable::getList([
                 'filter' => [
                     '=ID'               => $idLocation,
-                    '=NAME.LANGUAGE_ID' => LANGUAGE_ID
                 ],
                 'select' => [
                     '*'
@@ -235,7 +206,7 @@ class Location
 
         if($id)
         {
-            $location = \Bitrix\Sale\Location\LocationTable::getList([
+            $location = SaleLocation\LocationTable::getList([
                 'filter' => [
                     'ID' => $id,
                     '=NAME.LANGUAGE_ID' => LANGUAGE_ID,
@@ -249,6 +220,7 @@ class Location
                     'ttl' => 36000000,
                 ],
             ])->fetch();
+            
             if ($location['ID'] > 0)
             {
                 $return = $location;
@@ -279,7 +251,7 @@ class Location
             {
                 if ($_COOKIE['kit_regions_location_id'] > 0)
                 {
-                    $location = \Bitrix\Sale\Location\LocationTable::getList([
+                    $location = SaleLocation\LocationTable::getList([
                         'filter' => [
                             'ID' => $_COOKIE['kit_regions_location_id'],
                             '=NAME.LANGUAGE_ID' => LANGUAGE_ID
@@ -357,7 +329,7 @@ class Location
 
             if($arLoc)
             {
-                $rsLocTable = \Bitrix\Sale\Location\LocationTable::getList(
+                $rsLocTable = SaleLocation\LocationTable::getList(
                     [
                         'filter' => [
                             'TYPE_ID'           => LocationType::getCity(),
@@ -393,7 +365,7 @@ class Location
 
                 if(!$return[$region['ID']]['LOCATION'])
                 {
-                    $rsLocTableDefault = \Bitrix\Sale\Location\LocationTable::getList(
+                    $rsLocTableDefault = SaleLocation\LocationTable::getList(
                         [
                             'filter' => [
                                 '=CHILDREN.NAME.LANGUAGE_ID' => LANGUAGE_ID,
@@ -432,7 +404,7 @@ class Location
 
                     if(!$return[$region['ID']]['LOCATION'])
                     {
-                        $location = \Bitrix\Sale\Location\LocationTable::getList([
+                        $location = SaleLocation\LocationTable::getList([
                             'filter' => [
                                 'TYPE_ID' => LocationType::getCity(),
                                 '=NAME.LANGUAGE_ID' => LANGUAGE_ID,
@@ -468,7 +440,7 @@ class Location
 
         $arLocations = [];
 
-        $rs = \Bitrix\Sale\Location\LocationTable::getList(
+        $rs = SaleLocation\LocationTable::getList(
             [
                 'filter' => [
                     'TYPE_ID'           => LocationType::getCity(),
@@ -514,7 +486,7 @@ class Location
         $return['FAVORITES'] = [];
         $countries = [];
 
-        $rs = \Bitrix\Sale\Location\LocationTable::getList(
+        $rs = SaleLocation\LocationTable::getList(
             [
                 'filter' => [
                     'TYPE_ID'           => [1, LocationType::getCity()],
@@ -634,9 +606,10 @@ class Location
         $return['REGION_LIST_COUNTRIES'] = $countries;
         return $return;
     }
-    public function getFavorites(){
+
+    public static function getFavorites(){
         $return = [];
-        $rs = \Bitrix\Sale\Location\DefaultSiteTable::getList(
+        $rs = SaleLocation\DefaultSiteTable::getList(
             [
                 'select' => ['LOCATION_CODE'],
                 'filter' => ['SITE_ID' => SITE_ID]
@@ -647,5 +620,128 @@ class Location
         }
 
         return $return;
+    }
+
+    public function findByGeodata(GeoIp\Data $data): array
+    {
+        $type = array_column(SaleLocation\TypeTable::query()
+            ->setSelect(['ID', 'CODE'])
+            ->fetchAll(), 'ID', 'CODE',
+        );
+
+        $contryType = (int)$type['COUNTRY'] ?? 0;
+        $regionType = (int)$type['REGION'] ?? 0;
+        $cityType = (int)$type['CITY'] ?? 0;
+
+        $initialRequest = SaleLocation\LocationTable::query()->setSelect(['*', 'NAME.*']);
+
+        if (!empty($data->countryName)) {
+            $margins = $this->searchByType(clone $initialRequest, $contryType, $data->countryName);
+        }
+
+        if (isset($data->countryName) && count($margins) > 0) {
+            $initialRequest
+                ->where('LEFT_MARGIN', '>=', $margins['LEFT_MARGIN'])
+                ->where('RIGHT_MARGIN', '<=', $margins['RIGHT_MARGIN']);
+        }
+
+        $result = isset($data->cityName)
+            ? $this->searchByType(clone $initialRequest, $cityType, $data->cityName)
+            : [];
+
+        if (count($result) !== 0) {
+            return $this->langCorrection($result);
+        }
+
+        if (empty($data->regionName)) {
+            return [];
+        }
+
+        $regionData = $this->searchByType(clone $initialRequest, $regionType, $data->regionName);
+
+        if (count($regionData) === 0) {
+            return [];
+        }
+
+        if ($contryType !== 0) {
+            $initialRequest->where('TYPE_ID', $cityType);
+        }
+
+        $result = $initialRequest->where('PARENT_ID', $regionData['ID'])->fetch();
+
+        return $this->langCorrection($result);
+    }
+
+    /** @return string[] */
+    private function getLevenshtein1(string $word): array
+    {
+        $words = array();
+        for ($i = 0; $i < strlen($word); $i++) {
+            // insertions
+            $words[] = substr($word, 0, $i) . '_' . substr($word, $i);
+            // deletions
+            $words[] = substr($word, 0, $i) . substr($word, $i + 1);
+            // substitutions
+            $words[] = substr($word, 0, $i) . '_' . substr($word, $i + 1);
+        }
+        // last insertion
+        $words[] = $word . '_';
+        return $words;
+    }
+
+    private function searchByType(Query\Query $initialRequest, int $type, string $name): array
+    {
+        $currentCharset = Encoding::convertEncodingToCurrent($name);
+        $names = $this->getLevenshtein1($currentCharset);
+
+        $filter = array_reduce($names, function (Query\Filter\ConditionTree $curry, $i) {
+            return $curry->whereLike('NAME.NAME', $i);
+        }, Query\Query::filter()->logic('or'));
+
+        if ($type !== 0) {
+            $initialRequest->where('TYPE_ID',  $type);
+        }
+
+        $result = $initialRequest
+            ->where($filter)
+            ->fetchAll();
+
+        if (count($result) === 1) {
+            return $result[0];
+        }
+
+        if (count($result) > 1) {
+            return array_reduce($result, function($curry, $i) use ($currentCharset) {
+                $key = 'SALE_LOCATION_LOCATION_NAME_NAME';
+                return levenshtein($i[$key], $currentCharset) < levenshtein($curry[$key], $currentCharset) ? $i : $curry;
+            }, current($result));
+        }
+
+        return [];
+    }
+
+    private function langCorrection(array $locationData): array
+    {
+        if (LANGUAGE_ID === $locationData['SALE_LOCATION_LOCATION_NAME_LANGUAGE_ID']) {
+            return $locationData;
+        }
+
+        $langs = SaleLocation\Name\LocationTable::query()
+            ->addSelect('LANGUAGE_ID')
+            ->where('LOCATION_ID', $locationData['ID'])
+            ->fetchAll();
+
+        if (!in_array(LANGUAGE_ID, array_column($langs, 'LANGUAGE_ID'))) {
+            return $locationData;
+        }
+
+        $result = SaleLocation\LocationTable::query()
+            ->setSelect(['*', 'NAME.*'])
+            ->where('ID', (int)$locationData['ID'])
+            ->where('NAME.LANGUAGE_ID', LANGUAGE_ID)
+            ->setLimit(1)
+            ->fetch();
+
+        return $result;
     }
 }

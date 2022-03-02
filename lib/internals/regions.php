@@ -2,13 +2,17 @@
 namespace Kit\Regions\Internals;
 
 use Bitrix\Main\GroupTable;
-use Bitrix\Main\Localization\Loc,
-	Bitrix\Main\Entity;
+use	Bitrix\Main\Localization\Loc;
+use	Bitrix\Main\ORM\Data\DataManager;
+use Bitrix\Main\ORM\Event;
+use Bitrix\Main\ORM\Fields\Validators\LengthValidator;
+use Bitrix\Main\ORM\Fields\On;
+use Bitrix\Main\ORM\Fields\Relations\OneToMany;
 
 Loc::loadMessages(__FILE__);
 
 
-class RegionsTable extends Entity\DataManager
+class RegionsTable extends DataManager
 {
 	/**
 	 * Returns DB table name for entity.
@@ -94,6 +98,10 @@ class RegionsTable extends Entity\DataManager
 				'data_type' => 'integer',
 				'title' => Loc::getMessage(\KitRegions::moduleId.'_REGIONS_ENTITY_PRICE_VALUE_FIELD'),
 			),
+
+			(new OneToMany(
+				'REGIONS', LocationsTable::class, 'REGION',
+			)),
 		);
 	}
 	/**
@@ -105,7 +113,7 @@ class RegionsTable extends Entity\DataManager
 	public static function validateCode()
 	{
 		return array(
-			new Entity\Validator\Length(null, 100),
+			new LengthValidator(null, 100),
 		);
 	}
 	/**
@@ -117,35 +125,35 @@ class RegionsTable extends Entity\DataManager
 	public static function validateName()
 	{
 		return array(
-			new Entity\Validator\Length(null, 255),
+			new LengthValidator(null, 255),
 		);
 	}
 
-	/**
-	 * @param Entity\Event $event
-	 */
-	public static function OnAdd(Entity\Event $event)
+	public static function OnAdd(Event $event)
 	{
 		RegionsTable::getEntity()->cleanCache();
 		GroupTable::getEntity()->cleanCache();
 	}
 
-	/**
-	 * @param Entity\Event $event
-	 */
-	public static function OnUpdate(Entity\Event $event)
+	public static function OnUpdate(Event $event)
 	{
 		RegionsTable::getEntity()->cleanCache();
         GroupTable::getEntity()->cleanCache();
 	}
 
-	/**
-	 * @param Entity\Event $event
-	 */
-	public static function OnDelete(Entity\Event $event)
+	public static function OnDelete(Event $event)
 	{
 		RegionsTable::getEntity()->cleanCache();
         GroupTable::getEntity()->cleanCache();
+		$id = $event->getParameters()['id']['ID'];
+		$filds = LocationsTable::query()
+			->addSelect('ID')
+			->where('REGION_ID', $id)
+			->fetchCollection();
+		/** @var EO_Location_Collection $filds */
+		foreach ($filds as $fild) {
+			$fild->delete();
+		}
 	}
 }
 ?>

@@ -20,6 +20,11 @@ Loc::loadMessages(__FILE__);
 
 $APPLICATION->SetTitle(Loc::getMessage(\KitRegions::moduleId.'_TITLE'));
 
+if(\KitRegions::isDemoEnd())
+{
+	return false;
+}
+
 $sites = [];
 $rsSites = \Bitrix\Main\SiteTable::getList(array(
 	'select' => array(
@@ -598,6 +603,19 @@ $oFilter = new CAdminFilter(
 		?>
 	</form>
 <?
+
+if(\KitRegions::getDemo() == 2)
+{
+	CAdminMessage::ShowMessage(array("MESSAGE"=>Loc::getMessage(\KitRegions::moduleId."_DEMO"),
+		'HTML'=>true));
+}
+if(\KitRegions::getDemo() == 3)
+{
+	CAdminMessage::ShowMessage(array("MESSAGE"=>Loc::getMessage(\KitRegions::moduleId."_DEMO_END"),
+		'HTML'=>true));
+}
+
+
 $lAdmin->DisplayList();
 
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/epilog_admin.php");

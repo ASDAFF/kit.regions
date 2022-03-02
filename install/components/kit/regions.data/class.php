@@ -34,9 +34,24 @@ class KitRegionsDataComponent extends \CBitrixComponent
     public function executeComponent()
     {
         global $APPLICATION;
-        if (!Loader::includeModule('kit.regions')) {
+        if (!Loader::includeModule('kit.regions')
+            || \KitRegions::isDemoEnd()
+        ) {
             return false;
         }
+
+        if (isset($_COOKIE["kit_regions_id"])) {
+            $this->arParams['REGION_ID'] = $_COOKIE["kit_regions_id"];
+        } else {
+            $id = RegionsTable::query()
+                ->addSelect('ID')
+                ->where('SITE_ID', serialize([SITE_ID]))
+                ->where('DEFAULT_DOMAIN', 'Y')
+                ->fetch()['ID']
+            ;
+            $this->arParams['REGION_ID'] = $id;
+        }
+
         if(!$this->arParams['REGION_ID']){
             return false;
         }

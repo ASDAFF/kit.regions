@@ -127,11 +127,9 @@
     bottom: 0;
     left: 0;
     z-index: 3000;
-    display: none;
 }
 
 .modal__overlay {
-    display: none;
     position: fixed;
     left: 0;
     top: 0;
@@ -551,4 +549,12 @@
 #region-input {
     transition: all 0.4s ease-in-out;
     width: 100%;
+}
+
+.select-city__block__text-city__js {
+    cursor: pointer;
+}
+
+.select-city__under_input span br {
+    display: none;
 }

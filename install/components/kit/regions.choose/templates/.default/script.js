@@ -1,264 +1,233 @@
-window.KitRegions = function(arParams) {
-	var list = [];
-	//var regions = JSON.parse(arParams.list);
-	for(var i = 0; i < arParams.list.length; ++i)
-	{
-		list[i] = {value:arParams.list[i]['NAME'],text:arParams.list[i]['NAME']};
-	}
+class RegionsChoose {
 
-	var inputText = document.getElementsByClassName("select-city__modal__submit__input");
-	var inputWrap = document.getElementsByClassName("select-city__modal__submit__block-wrap__input_wrap");
-	var wrap = document.getElementsByClassName("select-city__dropdown-wrap");
-	var modal = document.getElementsByClassName("select-city__modal");
-	var overlay = document.getElementsByClassName("modal__overlay");
-	var yes = document.getElementsByClassName("select-city__dropdown__choose__yes");
-	var no = document.getElementsByClassName("select-city__dropdown__choose__no");
-	var textCity = document.getElementsByClassName("select-city__block__text-city");
-	var close = document.getElementsByClassName("select-city__close");
-	var item = document.getElementsByClassName("select-city__modal__list__item");
-	var button = document.getElementsByClassName("select-city__modal__submit__btn");
-	var error = document.getElementsByClassName("select-city__modal__submit__block-wrap__input_wrap_error");
+    constructor() {
 
-	var params = JSON.parse(arParams.arParams);
+        this.getRegion();
 
-	horsey(inputText[0], {
-		source: [{ list: list}],
-		getText: 'text',
-		getValue: 'value',
-		limit: 2,
-		appendTo:inputWrap[0],
-		filter: function(query, suggestion){
-			query = query.toLowerCase();
-			var sug = suggestion['text'].toLowerCase();
-			if(sug.indexOf(query) === 0)
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
-	});
-	
-	
-	yes[0].addEventListener('click',function ()
-	{
-		wrap[0].style.display = 'none';
-		SetCookie('kit_regions_city_choosed','Y',{'domain': '.' + arParams.rootDomain});
+        this.rootId = 'regions_choose_component';
+        this.rootDropDownId = 'regions_choose_component_dropdown';
+        this.selectRegionID = 'regon_choose_select-city__modal';
+        this.selectRegionOverlayID = 'regon_choose_modal__overlay';
+    
+        this.questionRegionId = null;
+        this.loctionList = null;
 
-		isFind = true;
-		if(params.FROM_LOCATION == 'Y')
-		{
-			SetCookie('kit_regions_location_id',yes[0].dataset.id,{'domain': '.' + arParams.rootDomain});
+        this.root = document.getElementById(this.rootId);
+        this.rootDropDown = document.getElementById(this.rootDropDownId);
+        this.selectRegion = document.getElementById(this.selectRegionID);
+        this.selectRegionOverlay = document.getElementById(this.selectRegionOverlayID);
 
-			var xhr = new XMLHttpRequest();
-			var body = 'id=' + yes[0].dataset.id+'&action=getDomainByLocation';
-			xhr.open("POST", arParams.componentFolder+'/ajax.php', true);
-			xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-			xhr.onreadystatechange = function()
-			{
-				if (this.readyState != 4) return;
-				var answer = JSON.parse(this.responseText);
-				if(answer.ID){
-					SetCookie('kit_regions_id',answer.ID,{'domain':arParams.rootDomain});
-					if(arParams.singleDomain == 'Y')
-					{
-						//location.reload();
-					}
-					else
-					{
-						document.location.href=answer.CODE;
-					}
-				}
-			}
-			xhr.send(body);
-		}
-		else
-		{
+        this.setEvents();
+    }
 
-			if (arParams.singleDomain != 'Y')
-			{
-				var url = '';
-				for (var i = 0; i < arParams.list.length; ++i)
-				{
-					if (arParams.list[i]['ID'] == yes[0].dataset.id)
-					{
-						url = arParams.list[i]['URL'];
-						SetCookie('kit_regions_id', yes[0].dataset.id, {'domain': '.' + arParams.rootDomain});
-					}
-				}
-				if (url.length > 0)
-				{
-					document.location.href = url;
-				}
-			}
-			else
-			{
-				//location.reload();
-				SetCookie('kit_regions_id', yes[0].dataset.id, {'domain': '.' + arParams.rootDomain});
-			}
-		}
-	});
-	no[0].addEventListener('click',function ()
-	{
-		Open();
-	});
-	textCity[0].addEventListener('click',function ()
-	{
-		Open();
-	});
-	button[0].addEventListener('click',function ()
-	{
-		var city = inputText[0].value;
-		var isFind = false;
-		for(var i = 0; i < arParams.list.length; ++i)
-		{
-			if(city == arParams.list[i]['NAME'])
-			{
-				isFind = true;
-				if(params.FROM_LOCATION == 'Y')
-				{
+    getEntity(parent, entity, all=false) {
+        if (!parent || !entity) {
+            return null;
+        }
+        if (all) {
+            return parent.querySelectorAll('[data-entity="' + entity + '"]');
+        }
+        return parent.querySelector('[data-entity="' + entity + '"]');
+    }
 
-					SetCookie('kit_regions_location_id',arParams.list[i]['ID'],{'domain':arParams.rootDomain});
+    setEvents() {
+        const yesBtn = this.getEntity(this.rootDropDown, 'select-city__dropdown__choose__yes');
+        const notBnt = this.getEntity(this.rootDropDown, 'select-city__dropdown__choose__no');
+        const cityName = this.getEntity(this.root, 'select-city__block__text-city');
+        const selectRegionClose = this.getEntity(this.selectRegion, 'select-city__close');
+        const searchLine = this.getEntity(this.selectRegion, 'select-city__modal__submit__input');
+        const selectRegionBtn = this.getEntity(this.selectRegion, 'select-city__modal__submit__btn');
 
-					var xhr = new XMLHttpRequest();
-					var body = 'id=' + arParams.list[i]['ID']+'&action=getDomainByLocation';
-					xhr.open("POST", arParams.componentFolder+'/ajax.php', true);
-					xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-					xhr.onreadystatechange = function() {
-						if (this.readyState != 4) return;
-						var answer = JSON.parse(this.responseText);
-						if(answer.ID){
+        yesBtn.addEventListener('click', () => this.onSetRegion(this.questionRegionId));
+        notBnt.addEventListener('click', () => this.onShowALLRegions());
+        cityName.addEventListener('click', () => this.onShowALLRegions());
+        selectRegionClose.addEventListener('click', () => this.onSelectRegionShow(false));
+        searchLine.addEventListener('input', e => this.onInputSearch(e))
 
-							SetCookie('kit_regions_city_choosed','Y',{'domain': '.' + arParams.rootDomain});
-							SetCookie('kit_regions_id',answer.ID,{'domain': '.' + arParams.rootDomain});
-							if(arParams.singleDomain == 'Y')
-							{
-								location.reload();
-							}
-							else
-							{
-								document.location.href=answer.CODE;
-							}
-						}
-					}
-					xhr.send(body);
-				}
-				else{
+        selectRegionBtn.addEventListener('click', () => {
+            const selectedRegion = Object.keys(this.loctionList)
+                .filter(i => searchLine.value === this.loctionList[i]);
 
-					SetCookie('kit_regions_id',arParams.list[i]['ID'],{'domain': '.' + arParams.rootDomain});
-					if(arParams.singleDomain == 'Y')
-					{
-						location.reload();
-					}
-					else
-					{
-						document.location.href=arParams.list[i]['URL'];
-					}
-				}
-			}
-		}
-		if(!isFind)
-		{
-			error[0].style.display = 'block';
-		}
-	});
-	
-	for(var i = 0; i < item.length; ++i)
-	{
-		item[i].addEventListener('click',function ()
-		{
-			var index = this.getAttribute('data-index');
-			SetCookie('kit_regions_city_choosed','Y',{'domain': '.' + arParams.rootDomain});
+            if (selectedRegion.length === 0) {
+                this.getEntity(this.selectRegion, select-city__modal__submit__block-wrap__input_wrap_error)
+                    .setAttribute('style', '');
+                return;
+            }
 
-			if(params.FROM_LOCATION == 'Y')
-			{
-				SetCookie('kit_regions_location_id',arParams.list[index]['ID'],{'domain': '.' + arParams.rootDomain});
+            this.onSetRegion(selectedRegion[0]);
+            this.onShowALLRegions(false);
+        })
 
-				var xhr = new XMLHttpRequest();
-				var body = 'id=' + arParams.list[index]['ID']+'&action=getDomainByLocation';
-				xhr.open("POST", arParams.componentFolder+'/ajax.php', true);
-				xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-				xhr.onreadystatechange = function() {
-					if (this.readyState != 4) return;
-					var answer = JSON.parse(this.responseText);
-					if(answer.ID)
-					{
+    }
 
-						SetCookie('kit_regions_id',answer.ID,{'domain': '.' + arParams.rootDomain});
-						if(arParams.singleDomain == 'Y')
-						{
-							location.reload();
-						}
-						else
-						{
-							document.location.href=answer.CODE;
-						}
-					}
-				}
-				xhr.send(body);
-			}
-			else{
-				SetCookie('kit_regions_id',arParams.list[index]['ID'],{'domain': '.' + arParams.rootDomain});
-				if(arParams.singleDomain == 'Y')
-				{
-					location.reload();
-				}
-				else
-				{
-					document.location.href=arParams.list[index]['URL'];
-				}
-			}
-		});
-	}
-	
-	close[0].addEventListener('click',function ()
-	{
-		Close();
-	});
-	
-	function Open()
-	{
-		modal[0].style.display = 'block';
-		overlay[0].style.display = 'block';
-		wrap[0].style.display = 'none';
-	}
-	function Close()
-	{
-		modal[0].style.display = 'none';
-		overlay[0].style.display = 'none';
-	}
-	function SetCookie(name, value, options) 
-	{
-		options = options || {};
+    onSetRegion(regionId) {
+        BX.ajax.runAction('kit:regions.ChooseComponentController.setRegion', {
+            data: {regionId: regionId},
+        }).then(
+            (res) => res.data.actions.forEach(i => this[i](res.data)),
+            (err) => console.log(err),
+        )
+    }
 
-		var expires = options.expires;
+    dropDownShow(action) {
+        if (action) {
+            this.rootDropDown.setAttribute('style', 'display: block;');
+        } else {
+            this.rootDropDown.setAttribute('style', 'display: none;');
+        }
+    }
 
-		if (typeof expires == "number" && expires) 
-		{
-			var d = new Date();
-			d.setTime(d.getTime() + expires * 1000);
-			expires = options.expires = d;
-		}
-		if (expires && expires.toUTCString) 
-		{
-			options.expires = expires.toUTCString();
-		}
-		options.path = '/';
-		value = encodeURIComponent(value);
+    onShowALLRegions() {
 
-		var updatedCookie = name + "=" + value;
+        if (this.loctionList !== null) {
+            return this.SHOW_SELECT_REGIONS(this.loctionList);
+        }
 
-		for (var propName in options) 
-		{
-			updatedCookie += "; " + propName;
-			var propValue = options[propName];
-			if (propValue !== true) 
-			{
-				updatedCookie += "=" + propValue;
-			}
-		}
-		document.cookie = updatedCookie;
-	}
+        BX.ajax.runAction('kit:regions.ChooseComponentController.showLocations', {})
+            .then(
+                (res) => res.data.actions.forEach(i => this[i](res.data)),
+                (err) => console.log(err),
+            )
+    }
+
+    getRegion() {
+
+        const query = new URLSearchParams(window.location.search);
+
+        this.removeRegionGetParams(query);
+
+         BX.ajax.runAction('kit:regions.ChooseComponentController.getRegion', {
+            data: {redirectRegionId: query.get('redirectRegionId')},
+        })
+        .then(
+            (res) => res.data.actions.forEach(i => this[i](res.data)),
+            (err) => console.log(err),
+        )
+
+    }
+
+    onSelectRegionShow(action) {
+        if (action) {
+            this.selectRegion.setAttribute('style', 'display: block;');
+            this.selectRegionOverlay.setAttribute('style', 'display: block;');
+        } else {
+            this.selectRegionOverlay.setAttribute('style', 'display: none;');
+            this.selectRegion.setAttribute('style', 'display: none;');
+        }
+
+        this.getEntity(this.selectRegion, 'select-city__modal__submit__block-wrap__input_wrap_error')
+            .setAttribute('style', 'display: none;');
+    }
+
+    SHOW_REGION_NAME ({currentRegionName}) {
+        const elment = this.getEntity(this.root, 'select-city__block__text-city');
+        elment.innerText = currentRegionName;
+        this.getEntity(this.selectRegion, 'select-city__js').innerText = currentRegionName;
+    }
+
+    SHOW_QUESTION ({currentRegionName, currentRegionId}) {
+        this.questionRegionId = currentRegionId;
+        this.dropDownShow(true);
+        const element = this.getEntity(this.rootDropDown, 'select-city__dropdown__title');
+        element.innerText = element.textContent.replace('###', currentRegionName).trim();
+    }
+
+    CONFIRM_DOMAIN ({currentRegionName}) {
+        this.dropDownShow(false);
+        const elemnt = this.getEntity(this.root, 'select-city__block__text-city');
+        elemnt.innerText = currentRegionName;
+        this.getEntity(this.selectRegion, 'select-city__js').innerText = currentRegionName;
+    }
+
+    SHOW_SELECT_REGIONS ({allRegions}) {
+
+        this.onSelectRegionShow(true);
+
+        if (this.loctionList !== null) {
+            return;
+        }
+
+        const localRootElement = this.getEntity(this.selectRegion, 'select-city__modal__list');
+
+        this.loctionList = allRegions;
+
+        let counter = 0;
+
+        for (let i in allRegions) {
+            const element = document.createElement('p');
+            element.setAttribute('data-entity', 'select-city__modal__list__item');
+            element.setAttribute('class', 'select-city__modal__list__item');
+            element.innerText = allRegions[i];
+            element.addEventListener('click', () => {
+                this.onSetRegion(i);
+                this.onSelectRegionShow(false);
+            });
+            localRootElement.append(element);
+            counter++;
+            if (counter > 14) {
+                return;
+            }
+        }
+    }
+
+    REDIRECT_TO_SUBDOMAIN ({currentRegionCode, currentRegionId}) {
+        const hostName = window.location.hostname;
+        const protocol = window.location.protocol;
+        const newUrl = window.location.href.replace(hostName, currentRegionCode);
+        const url = new URL(newUrl, `${protocol}${currentRegionCode}`);
+        url.searchParams.set('redirectRegionId', currentRegionId);
+        window.location.href = url.toString();
+    }
+
+    CONFIRM_CITY ({}) {
+    }
+
+    onInputSearch(e) {
+
+        const elementClass = 'regions_vars';
+        this.getEntity(this.selectRegion, elementClass, true).forEach(i => i.remove());
+        const text = e.currentTarget.value;
+        const localRootElement = this.getEntity(this.selectRegion, 'select-city__modal__submit__vars');
+        this.getEntity(this.selectRegion, 'select-city__modal__submit__block-wrap__input_wrap_error')
+            .setAttribute('style', 'display: none;');
+
+        if (text.length  < 2) {
+            localRootElement.setAttribute('style', 'display: none;');
+            return;
+        }
+
+        const currentTarget = e.currentTarget;
+
+        const match = Object.keys(this.loctionList).filter(i => {
+            return  new RegExp(text, 'i').test(this.loctionList[i])
+        });
+
+        if (match.length > 0) {
+            localRootElement.setAttribute('style', 'display: block;');
+        } else {
+            localRootElement.setAttribute('style', 'display: none;');
+        }
+
+        match.forEach(i => {
+            const element = document.createElement('div');
+            element.setAttribute('data-entity', elementClass);
+            element.setAttribute('class', elementClass);
+            element.setAttribute('tabindex', 0);
+            element.innerText = this.loctionList[i];
+            element.addEventListener('click', () => {
+                currentTarget.value = this.loctionList[i];
+                this.getEntity(this.selectRegion, elementClass, true).forEach(i => i.remove());
+                localRootElement.setAttribute('style', 'display: none;');
+            });
+            localRootElement.append(element);
+        })
+    }
+
+    removeRegionGetParams(query) {
+        if (query.has('redirectRegionId')) {
+            const url = new URL(window.location.href, window.location.href);
+            url.searchParams.delete('redirectRegionId');
+            window.history.replaceState(null, '', url)
+        }
+    }
 }

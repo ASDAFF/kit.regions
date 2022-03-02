@@ -1,14 +1,20 @@
 <?php
+
 use Bitrix\Main\Loader;
 use Bitrix\Main\Localization\Loc;
 use Kit\Regions\Config;
 use Kit\Regions\Helper\LocationType;
+use Bitrix\Sale\Location\LocationTable;
+use Kit\Regions\Controllers\AdminController;
+use Bitrix\Main\ORM\Fields\ExpressionField;
 
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_before.php");
 require_once($_SERVER['DOCUMENT_ROOT'].'/bitrix/modules/main/include/prolog_admin.php');
 
 Loc::loadMessages(__FILE__);
 
+
+$saleIsInstaled = Loader::includeModule('sale');
 
 if ($APPLICATION->GetGroupRight("main") < "R") {
     $APPLICATION->AuthForm(Loc::getMessage("ACCESS_DENIED"));
@@ -27,25 +33,19 @@ $addOrderProperty = new Config\Widgets\CheckBox(
     'ADD_ORDER_PROPERTY',
     ['NOTE' => Loc::getMessage(KitRegions::moduleId.'_ADD_ORDER_PROPERTY_NOTE'),]
 );
+
 $findUserMethod = new Config\Widgets\Select(
     'FIND_USER_METHOD',
-    ['NOTE' => Loc::getMessage(KitRegions::moduleId.'_WIDGET_FIND_USER_METHOD_NOTE')]);
+    ['NOTE' => str_replace(
+        '######', AdminController::getUrl('downloadFile', ['name' => 'update.log']), Loc::getMessage(KitRegions::moduleId.'_WIDGET_FIND_USER_METHOD_NOTE')
+    )]);
 
+$findUserMethodValues = ['services' => Loc::getMessage(KitRegions::moduleId.'_SERVICES')];
 
 if (Loader::includeModule('statistic')) {
-    $findUserMethodValues = [
-        'ipgeobase' => 'IpGeoBase',
-        'statistic' => Loc::getMessage(KitRegions::moduleId.'_STATISTIC'),
-    ];
-} else {
-    $findUserMethodValues = [
-        'ipgeobase' => 'IpGeoBase',
-    ];
+    $findUserMethodValues['statistic'] = Loc::getMessage(KitRegions::moduleId.'_STATISTIC');
 }
 
-if (function_exists('geoip_record_by_name')) {
-    $findUserMethodValues['geoip'] = 'GeoIp';
-}
 $findUserMethod->setValues($findUserMethodValues);
 
 $mapsMarker = new Config\Widgets\File(
@@ -82,6 +82,7 @@ if (!empty($locationTypeList)) {
 }
 
 
+
 /**
  * Tab: SETTING
  */
@@ -113,6 +114,7 @@ $Options->getTabs()->addItem($Tab);
 /**
  * Tab: VARIABLES
  */
+
 $Tab = new Config\Tab('2');
 
 // group: VARIABLES_SETTINGS
@@ -124,6 +126,57 @@ $Group->getWidgets()->addItem($Variables);
 $Tab->getGroups()->addItem($Group);
 $Options->getTabs()->addItem($Tab);
 
+
+
+if ($saleIsInstaled) {
+    /**
+     * Tab: ADD LANG
+     */
+
+    /** @var iterable $contrys */
+    $contrys = LocationTable::query()
+        ->addSelect('ID')
+        ->addSelect('NAME.NAME')
+        ->where(new ExpressionField('1',  'CAST(%s as UNSIGNED)', ['NAME.NAME']), 0)
+        ->where(new ExpressionField('2',  'LENGTH(%s)', ['NAME.NAME']), '>', 2)
+        ->where('PARENT_ID', 0)
+        ->fetchCollection();
+
+    $Tab = new Config\Tab('3');
+    $charset = new Config\Widgets\Select('CHARSET_UPLOD_FILE');
+    $charset->setValues(['windows-1251' => '', 'utf-8' => '']);
+    $Group = new Config\Group('DOWNLOAD_FILES_FOR_ADD_LANGS');
+    $contrysNames = [];
+    foreach ($contrys as $contry) {
+        $contrysNames[$contry->get('ID')] = $contry->get('NAME')->get('NAME');
+        $checkBox = new Config\Widgets\CheckBox($contry->get('NAME')->get('NAME'));
+        $Group->getWidgets()->addItem($checkBox);
+    }
+    $upload = new Config\Widgets\AnyElement('UPLOAD_CSV_FILE', [
+        'path' => __DIR__ . '/uploadLangs.php',
+        'url' => '/',
+        'elementsId' => $contrysNames,
+    ]);
+    $Group->getWidgets()->addItem($charset);
+    $Group->getWidgets()->addItem($upload);
+    $download = new Config\Widgets\AnyElement('DOWNLOAD_NEW_LANGS', [
+        'path' => __DIR__ . '/downloadLangs.php',
+        'url' => '/',
+        'elementsId' => $contrysNames,
+        'charsetId' => 'CHARSET_UPLOD_FILE',
+    ]);
+    $Group->getWidgets()->addItem($download);
+
+    $instruction = new Config\Widgets\AnyElement('ok', [
+        'path' => __DIR__ . '/instruction.php',
+        'CUSTOM_ROW' => true,
+    ]);
+    $Group->getWidgets()->addItem($instruction);
+
+    $Tab->getGroups()->addItem($Group);
+    $Options->getTabs()->addItem($Tab);
+
+}
 
 $Options->show();
 

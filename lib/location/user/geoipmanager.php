@@ -2,7 +2,7 @@
 
 namespace Kit\Regions\Location\User;
 
-use Bitrix\Main\Service;
+use Bitrix\Main\Service\GeoIp;
 
 /**
  * Class GeoIpManager
@@ -11,36 +11,25 @@ use Bitrix\Main\Service;
  */
 class GeoIpManager
 {
-    /**
-     * @var false|string
-     */
+    /** @var false|string */
     protected $ip;
 
-    /**
-     * GeoIpManager constructor.
-     */
-    public function __construct(
-    ) {
-        $this->ip = Service\GeoIp\Manager::getRealIp();
+    public function __construct()
+    {
+        $this->ip = GeoIp\Manager::getRealIp();
     }
 
-    /**
-     * @return string
-     */
-    public function getUserCity(
-    ) {
-        $return = '';
-        if ($this->ip) {
-            $GeoData = Service\GeoIp\Manager::getDataResult($this->ip,
-                'ru',
-                array(
-                    'countryName',
-                    'cityName'
-                ));
-            if (!is_null($GeoData)) {
-                $return = $GeoData->getGeoData()->cityName;
-            }
+    public function getUserCity(): GeoIp\Data
+    {
+        $lang = 'ru';
+        $geoData = GeoIp\Manager::getDataResult($this->ip, $lang, [
+            'countryName',
+            'regionName',
+            'cityName'
+        ]);
+        if (!is_null($geoData)) {
+            return $geoData->getGeoData();
         }
-        return $return;
+        return new GeoIp\Data();
     }
 }

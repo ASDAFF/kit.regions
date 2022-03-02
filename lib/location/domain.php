@@ -40,8 +40,11 @@ class Domain
      */
     public function __construct()
     {
+        if (!\KitRegions::isDemoEnd())
+        {
             self::setLocation();
             $this->variables = Variables::getInstance();
+        }
     }
 
     /**

@@ -12,13 +12,13 @@ if (!defined('B_PROLOG_INCLUDED') || B_PROLOG_INCLUDED !== true) {
 
 /**
  * Class KitRegionsMapsComponent
- *
+ * Date: 04.11.2019
  */
 class KitRegionsMapsComponent extends \CBitrixComponent
 {
     public function onPrepareComponentParams($arParams)
     {
-        if (Loader::includeModule('kit.regions')) {
+        if (Loader::includeModule('kit.regions') && !\KitRegions::isDemoEnd()) {
             $regions = array_keys($this->getRegions());
 
             // type map
@@ -81,7 +81,7 @@ class KitRegionsMapsComponent extends \CBitrixComponent
      */
     public function executeComponent()
     {
-        if (Loader::includeModule('kit.regions')) {
+        if (Loader::includeModule('kit.regions') && !\KitRegions::isDemoEnd()) {
 
             // marker file
             $this->arResult['MARKER'] = '';
